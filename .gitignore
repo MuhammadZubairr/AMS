@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+.next/
+out/
+dist/
+build/
+coverage/
+
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
+
+# VS Code / agent config
+.cursorrules
+**/.cursorrules
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
