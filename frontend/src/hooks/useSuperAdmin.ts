@@ -12,21 +12,22 @@ async function fetchAttendance(period: string) {
 }
 
 export function useAttendance(period: string) {
-  return useQuery(['superadmin', 'attendance', period], () => fetchAttendance(period));
+  return useQuery({
+    queryKey: ['superadmin', 'attendance', period],
+    queryFn: () => fetchAttendance(period),
+  });
 }
 /**
  * Super Admin React Query Hooks
  * All data fetching and mutations for super admin
  */
 
-import { useQuery, useMutation, QueryClient } from '@tanstack/react-query';
+import { useMutation, QueryClient } from '@tanstack/react-query';
 import * as superadminApi from '@/services/superadminApi';
 import {
   DashboardData,
   User,
   CreateUserRequest,
-  Manager,
-  HRUser,
   UpdateUserRequest,
 } from '@/types/superadmin';
 

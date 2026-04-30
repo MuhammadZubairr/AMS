@@ -10,8 +10,8 @@ const passwordValidation = yup
   .string()
   .required('Password is required')
   .min(
-    PASSWORD_REQUIREMENTS.MIN_LENGTH,
-    `Password must be at least ${PASSWORD_REQUIREMENTS.MIN_LENGTH} characters`
+    PASSWORD_REQUIREMENTS.minLength,
+    `Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters`
   )
   .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .matches(/[a-z]/, 'Password must contain at least one lowercase letter')

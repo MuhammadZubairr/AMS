@@ -27,7 +27,7 @@ export default function SettingsPage() {
           <Formik
             initialValues={{ minLength: 8, requireUpper: true, requireLower: true, requireNumber: true, requireSpecial: true }}
             validationSchema={schema}
-            onSubmit={(values) => {
+            onSubmit={(_values) => {
               // currently frontend-only; persist via API later
               alert('Settings saved (frontend-only)');
             }}

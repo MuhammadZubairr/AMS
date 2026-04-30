@@ -367,7 +367,7 @@ export default function ManagersPage() {
                 validationSchema={createManagerSchema}
                 onSubmit={handleCreateManager}
               >
-                {({ errors, touched }) => (
+                {({ errors, touched, isSubmitting }) => (
                   <Form>
                     <div className="p-6 space-y-4">
                       <FormField
@@ -438,7 +438,7 @@ export default function ManagersPage() {
                 validationSchema={editManagerSchema}
                 onSubmit={handleUpdateManager}
               >
-                {({ errors, touched, isSubmitting }) => (
+                {({ errors, touched }) => (
                   <Form>
                     <div className="p-6 space-y-4">
                       <FormField

@@ -50,7 +50,7 @@ export default function EmployeesPage() {
   // Filter employees by search query
   const filteredEmployees = useMemo(() => {
     if (!data?.users) return [];
-    return data.users.filter((emp) =>
+    return data.users.filter((emp: User) =>
       emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -72,7 +72,7 @@ export default function EmployeesPage() {
   };
 
   // Handle update employee
-  const handleUpdateEmployee = async (values: { name: string; email: string }) => {
+  const handleUpdateEmployee = async (_values: { name: string; email: string }) => {
     if (!editEmployee) return;
     try {
       setIsUpdating(true);
@@ -109,9 +109,9 @@ export default function EmployeesPage() {
 
   // Table columns
   const columns: TableColumn<User>[] = [
-    { key: 'name', label: 'Name', sortable: true },
-    { key: 'email', label: 'Email', sortable: true },
-    { key: 'created_at', label: 'Joined', sortable: true },
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'created_at', label: 'Joined' },
   ];
 
   if (isLoading) {
@@ -179,13 +179,27 @@ export default function EmployeesPage() {
 
         {/* Data Table */}
         {filteredEmployees.length === 0 ? (
-          <EmptyState message="No employees found" />
+          <EmptyState title="No Employees" message="No employees found" />
         ) : (
           <DataTable<User>
             columns={columns}
             data={filteredEmployees}
-            onEdit={(employee) => setEditEmployee(employee)}
-            onDelete={(employee) => setDeleteConfirm({ open: true, user: employee })}
+            actions={(employee) => (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setEditEmployee(employee)}
+                  className="px-3 py-1 text-sm bg-amber-100 text-amber-800 rounded hover:bg-amber-200"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => setDeleteConfirm({ open: true, user: employee })}
+                  className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded hover:bg-red-200"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
           />
         )}
 
@@ -212,7 +226,7 @@ export default function EmployeesPage() {
             <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Add Employee</h2>
               <Formik
-                initialValues={{ name: '', email: '', password: '' }}
+                initialValues={{ name: '', email: '', password: '', role: 'employee' }}
                 validationSchema={createUserSchema}
                 onSubmit={handleCreateEmployee}
               >
@@ -223,21 +237,21 @@ export default function EmployeesPage() {
                       label="Full Name"
                       type="text"
                       placeholder="John Doe"
-                      error={touched.name && errors.name}
+                      error={touched.name ? errors.name : undefined}
                     />
                     <FormField
                       name="email"
                       label="Email"
                       type="email"
                       placeholder="john@example.com"
-                      error={touched.email && errors.email}
+                      error={touched.email ? errors.email : undefined}
                     />
                     <FormField
                       name="password"
                       label="Password"
                       type="password"
                       placeholder="••••••••"
-                      error={touched.password && errors.password}
+                      error={touched.password ? errors.password : undefined}
                     />
                     <div className="flex gap-2 pt-4">
                       <button
@@ -273,14 +287,14 @@ export default function EmployeesPage() {
                       label="Full Name"
                       type="text"
                       placeholder="John Doe"
-                      error={touched.name && errors.name}
+                      error={touched.name ? errors.name : undefined}
                     />
                     <FormField
                       name="email"
                       label="Email"
                       type="email"
                       placeholder="john@example.com"
-                      error={touched.email && errors.email}
+                      error={touched.email ? errors.email : undefined}
                     />
                     <div className="flex gap-2 pt-4">
                       <button
@@ -302,7 +316,9 @@ export default function EmployeesPage() {
         {/* Delete Confirmation */}
         <DeleteConfirmation
           isOpen={deleteConfirm.open}
-          name={deleteConfirm.user?.name || ''}
+          title="Delete Employee"
+          message="Are you sure you want to delete this employee?"
+          itemName={deleteConfirm.user?.name || ''}
           onConfirm={handleDeleteEmployee}
           onCancel={() => setDeleteConfirm({ open: false, user: null })}
           isLoading={deleteMutation.isPending}

@@ -3,7 +3,6 @@
  */
 
 import React from 'react';
-import { Badge } from './Badge';
 
 export interface TableColumn<T> {
   key: keyof T | string;

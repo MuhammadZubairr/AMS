@@ -11,11 +11,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { SuperAdminLayout } from '@/components/superadmin/Layout';
 import { DataTable, TableColumn } from '@/components/superadmin/DataTable';
 import { Badge } from '@/components/superadmin/Badge';
-import { FormField, FormSelect, FormSubmit } from '@/components/superadmin/FormFields';
+import { FormField, FormSubmit } from '@/components/superadmin/FormFields';
 import { LoadingState, ErrorState, EmptyState } from '@/components/superadmin/States';
 import { DeleteConfirmation } from '@/components/superadmin/DeleteConfirmation';
 import { Modal } from '@/components/superadmin/Modal';
-import { useUsers, useUpdateUser, useDeleteUser, useCreateUser } from '@/hooks/useSuperAdmin';
+import { useUsers, useDeleteUser, useCreateUser } from '@/hooks/useSuperAdmin';
 import { updateUserRole } from '@/services/superadminApi';
 import { ROLE_OPTIONS } from '@/constants/superadmin';
 import { User } from '@/types/superadmin';
@@ -201,7 +201,7 @@ export default function UsersPage() {
         {/* Search and Filter Section */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <Formik initialValues={{ search: '', role: '' }} onSubmit={() => {}}>
-            {({ values, setFieldValue }) => (
+            {() => (
               <Form className="space-y-4">
                 <div>
                   <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
@@ -236,9 +236,9 @@ export default function UsersPage() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">All Roles</option>
-                      {ROLE_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
+                      {Object.entries(ROLE_OPTIONS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
                         </option>
                       ))}
                     </select>
@@ -413,7 +413,7 @@ export default function UsersPage() {
         {isCreateModalOpen && (
           <Modal isOpen={isCreateModalOpen} title="Create User" onClose={() => setIsCreateModalOpen(false)}>
             <Formik
-              initialValues={{ name: '', email: '', password: '', role: '' }}
+              initialValues={{ name: '', email: '', password: '', role: 'employee' }}
               validationSchema={createUserSchema}
               onSubmit={handleCreateUser}
             >
@@ -424,10 +424,10 @@ export default function UsersPage() {
                   <FormField name="password" label="Password" type="password" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special" error={errors.password} touched={touched.password} />
                   <div>
                     <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                    <select id="role" name="role" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <select id="role" name="role" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                       <option value="">Select a role</option>
-                      {ROLE_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      {Object.entries(ROLE_OPTIONS).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
                       ))}
                     </select>
                   </div>
@@ -466,7 +466,7 @@ export default function UsersPage() {
                 validationSchema={editRoleSchema}
                 onSubmit={handleUpdateUserRole}
               >
-                {({ values, errors, touched, isSubmitting, setFieldValue }) => (
+                {({ values, errors, touched, setFieldValue }) => (
                   <Form>
                     <div className="p-6 space-y-4">
                       {/* Current Role Info */}
@@ -490,9 +490,9 @@ export default function UsersPage() {
                           }`}
                         >
                           <option value="">Select a role</option>
-                          {ROLE_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
+                          {Object.entries(ROLE_OPTIONS).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
                             </option>
                           ))}
                         </select>

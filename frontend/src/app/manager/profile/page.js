@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import ManagerLayout from '@/components/ManagerLayout';
 import { useAuth } from '@/hooks/useAuth';

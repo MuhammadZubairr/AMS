@@ -12,7 +12,6 @@ import {
   Manager,
   HRUser,
   AttendanceStats,
-  ListResponse,
   UpdateUserRequest,
 } from '@/types/superadmin';
 

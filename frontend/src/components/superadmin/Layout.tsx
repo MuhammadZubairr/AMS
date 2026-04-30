@@ -55,8 +55,3 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
   );
 }
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto pt-16 pb-6">
-          <div className="px-4 md:px-8 py-6">{children}</div>
-        </main>
-

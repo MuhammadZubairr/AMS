@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { Field, ErrorMessage } from 'formik';
+import { Field } from 'formik';
 
 interface FormFieldProps {
   name: string;

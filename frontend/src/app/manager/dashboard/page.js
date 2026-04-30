@@ -1,3 +1,5 @@
+'use client';
+
 import { useQuery } from '@tanstack/react-query';
 import ManagerLayout from '@/components/ManagerLayout';
 import { managerApi } from '@/services/managerApi';
