@@ -2,9 +2,6 @@
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "env": {
-    "NEXT_PUBLIC_API_URL": "@next-api-url"
-  },
   "regions": ["iad1"],
   "functions": {
     "src/pages/**/*.{ts,tsx}": {
