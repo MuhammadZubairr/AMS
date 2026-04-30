@@ -80,8 +80,30 @@ The frontend runs on port `3000` by default.
 - `GET /api/auth/me`
 - `GET /health/db`
 
+## Deployment
+
+This project is configured for deployment on:
+- **Frontend:** Vercel
+- **Backend:** Railway
+- **Database:** PostgreSQL (Railway)
+
+### Quick Start
+1. Review [DEPLOYMENT.md](./DEPLOYMENT.md) for step-by-step instructions
+2. Use [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) to ensure everything is ready
+3. Ensure `.env.example` files in both directories have all required variables documented
+
+### Key Files
+- `backend/Dockerfile` - Docker configuration for Railway
+- `backend/Procfile` - Procfile for Railway deployment
+- `frontend/vercel.json` - Vercel configuration
+- `frontend/next.config.js` - Next.js optimization settings
+- `backend/.env.example` & `frontend/.env.example` - Environment variable templates
+
+For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
 ## Notes
 
 - The backend and frontend each have their own README files as well.
 - The frontend uses `NEXT_PUBLIC_API_URL` for API requests, with a localhost fallback.
 - The backend expects PostgreSQL to be available through `DATABASE_URL`.
+- See [DEPLOYMENT.md](./DEPLOYMENT.md) and [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) for production deployment.

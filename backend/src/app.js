@@ -5,6 +5,12 @@ const cookieParser = require('cookie-parser');
 const authRoutes = require('./routes/authRoutes');
 const healthRoutes = require('./routes/healthRoutes');
 const meRoutes = require('./routes/meRoutes');
+const superadminRoutes = require('./routes/superadminRoutes');
+const reportsRoutes = require('./routes/reportsRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const hrRoutes = require('./routes/hrRoutes');
+const managerRoutes = require('./routes/managerRoutes');
+const leaveRoutes = require('./routes/leaveRoutes');
 
 const app = express();
 
@@ -20,6 +26,12 @@ app.use(
 app.use('/api/auth', authRoutes);
 app.use('/health', healthRoutes);
 app.use('/api', meRoutes);
+app.use('/api/superadmin', superadminRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/hr', hrRoutes);
+app.use('/api/manager', managerRoutes);
+app.use('/api/leaves', leaveRoutes);
 
 app.get('/', (req, res) => res.json({ ok: true }));
 

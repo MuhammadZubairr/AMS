@@ -49,4 +49,19 @@ async function logout(req, res, next) {
   }
 }
 
-module.exports = { signup, login, logout };
+async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
+
+    const user = await authService.changePassword(req.user.id, currentPassword, newPassword);
+    res.json({ ok: true, message: 'Password changed successfully', user });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = { signup, login, logout, changePassword };

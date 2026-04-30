@@ -1,0 +1,14 @@
+Current structure issues:
+✗ app/ at root (old pages)
+✗ src/app/ (new superadmin pages)
+✗ components/ at root (old components)
+✗ src/components/ (new superadmin components)
+✗ hooks/ at root (old hooks)
+✗ src/hooks/ (new hooks)
+✗ services/ at root (old services)
+✗ src/services/ (new services)
+
+Correct structure should be:
+✓ Everything in src/
+✓ Organized by feature/route
+✓ Consistent file structure
