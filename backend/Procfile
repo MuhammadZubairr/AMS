@@ -1,2 +1,2 @@
-release: npm run migrate -- up
+release: DATABASE_URL=$DATABASE_URL npm run migrate -- --env production up
 web: npm start
