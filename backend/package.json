@@ -4,7 +4,7 @@
   "private": true,
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "npm run migrate -- --env production up && node src/server.js",
     "dev": "node scripts/free-port.js && nodemon src/server.js",
     "dev:watch": "nodemon src/server.js",
     "migrate": "db-migrate"
