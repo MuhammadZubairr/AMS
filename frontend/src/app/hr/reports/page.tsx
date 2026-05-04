@@ -1,33 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import HRLayout from '@/components/hr/Layout';
-
-interface DailyReportStats {
-  date: string;
-  total_employees: number;
-  present_count: number;
-  absent_count: number;
-  late_count: number;
-}
-
-interface MonthlyReportEntry {
-  day: number;
-  date: string;
-  present: number;
-  absent: number;
-  late: number;
-}
-
-interface EmployeeReportEntry {
-  id: number;
-  date: string;
-  check_in_time: string;
-  check_out_time: string | null;
-  status: string;
-  mode: string;
-}
+import { formatDate } from '@/utils/formatDate';
+import { useHRDailyReport, useHRMonthlyReport, useHREmployeeReport } from '@/hooks/hr/useHRReports';
 
 export default function HRReportsPage() {
   const [reportType, setReportType] = useState<'daily' | 'monthly' | 'employee'>('daily');
@@ -35,48 +11,9 @@ export default function HRReportsPage() {
   const [selectedMonth, setSelectedMonth] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
 
-  // Daily report
-  const { data: dailyData, isLoading: isDailyLoading } = useQuery<DailyReportStats>({
-    queryKey: ['hrDailyReport', selectedDate],
-    queryFn: async () => {
-      const response = await fetch(`/api/hr/reports/daily?date=${selectedDate}`, {
-        credentials: 'include',
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Failed to fetch daily report');
-      return result.data;
-    },
-    enabled: reportType === 'daily',
-  });
-
-  // Monthly report
-  const { data: monthlyData, isLoading: isMonthlyLoading } = useQuery<{ reports: MonthlyReportEntry[] }>({
-    queryKey: ['hrMonthlyReport', selectedMonth],
-    queryFn: async () => {
-      const [year, month] = selectedMonth.split('-');
-      const response = await fetch(`/api/hr/reports/monthly?year=${year}&month=${month}`, {
-        credentials: 'include',
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Failed to fetch monthly report');
-      return result.data;
-    },
-    enabled: reportType === 'monthly',
-  });
-
-  // Employee report
-  const { data: employeeData, isLoading: isEmployeeLoading } = useQuery<{ reports: EmployeeReportEntry[] }>({
-    queryKey: ['hrEmployeeReport', selectedEmployeeId],
-    queryFn: async () => {
-      const response = await fetch(`/api/hr/reports/employee/${selectedEmployeeId}`, {
-        credentials: 'include',
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Failed to fetch employee report');
-      return result.data;
-    },
-    enabled: reportType === 'employee' && selectedEmployeeId !== '',
-  });
+  const { data: dailyData, isLoading: isDailyLoading } = useHRDailyReport(selectedDate, reportType === 'daily');
+  const { data: monthlyData, isLoading: isMonthlyLoading } = useHRMonthlyReport(selectedMonth, reportType === 'monthly');
+  const { data: employeeData, isLoading: isEmployeeLoading } = useHREmployeeReport(selectedEmployeeId, reportType === 'employee' && selectedEmployeeId !== '');
 
   const formatTime = (time: string | null) => {
     if (!time) return '—';
@@ -192,7 +129,7 @@ export default function HRReportsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {monthlyData.reports.map((entry, idx) => (
+                    {(monthlyData.reports as Array<{ date: string; present: number; absent: number; late: number }>).map((entry, idx) => (
                       <tr key={idx} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                           {new Date(entry.date).toLocaleDateString('en-US', {
@@ -251,10 +188,10 @@ export default function HRReportsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {employeeData.reports.map((entry, idx) => (
+                      {(employeeData.reports as Array<{ date: string; check_in_time: string; check_out_time: string | null; status: string; mode: string }>).map((entry, idx) => (
                         <tr key={idx} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                            {new Date(entry.date).toLocaleDateString()}
+                            {formatDate(entry.date)}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-600">{formatTime(entry.check_in_time)}</td>
                           <td className="px-6 py-4 text-sm text-gray-600">{formatTime(entry.check_out_time)}</td>

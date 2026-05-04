@@ -1,6 +1,7 @@
 const leaveModel = require('../models/leaveModel');
 const userModel = require('../models/userModel');
 const notificationService = require('../services/notificationService');
+const ROLES = require('../constants/roles');
 
 const ALLOWED_LEAVE_TYPES = ['sick', 'casual', 'paid', 'unpaid'];
 
@@ -46,7 +47,7 @@ async function requestLeave(req, res, next) {
     const requester = await userModel.findById(userId);
 
     await notificationService.notifyDepartmentMembers(
-      'hr',
+      ROLES.HR,
       'New Leave Request',
       `${requester?.name || 'An employee'} submitted a ${leave.leave_type} leave request from ${leave.start_date} to ${leave.end_date}.`,
       'leave_request',

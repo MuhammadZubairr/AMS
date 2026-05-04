@@ -1,8 +1,8 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import HRLayout from '@/components/hr/Layout';
+import { useHRLeaves, useApproveLeave, useRejectLeave } from '@/hooks/hr/useHRLeaves';
 
 interface LeaveRequest {
   id: number;
@@ -17,56 +17,15 @@ interface LeaveRequest {
   created_at: string;
 }
 
-interface LeavesResponse {
-  leaves: LeaveRequest[];
-  total: number;
-}
-
 export default function HRLeavesPage() {
-  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [selectedLeave, setSelectedLeave] = useState<LeaveRequest | null>(null);
 
-  const { data, isLoading, error } = useQuery<LeavesResponse>({
-    queryKey: ['hrLeaves'],
-    queryFn: async () => {
-      const response = await fetch('/api/hr/leaves/pending');
-      if (!response.ok) throw new Error('Failed to fetch leaves');
-      return response.json();
-    },
-  });
+  const { data, isLoading, error } = useHRLeaves();
+  const approveMutation = useApproveLeave();
+  const rejectMutation = useRejectLeave();
 
-  // Approve leave mutation
-  const approveMutation = useMutation({
-    mutationFn: async (leaveId: number) => {
-      const response = await fetch(`/api/hr/leaves/${leaveId}/approve`, {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to approve leave');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hrLeaves'] });
-      setSelectedLeave(null);
-    },
-  });
-
-  // Reject leave mutation
-  const rejectMutation = useMutation({
-    mutationFn: async (leaveId: number) => {
-      const response = await fetch(`/api/hr/leaves/${leaveId}/reject`, {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to reject leave');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hrLeaves'] });
-      setSelectedLeave(null);
-    },
-  });
-
-  const filteredLeaves = data?.leaves?.filter((leave) => {
+  const filteredLeaves = (data || []).filter((leave) => {
     if (filter === 'all') return true;
     return leave.status === filter;
   }) || [];
@@ -84,7 +43,8 @@ export default function HRLeavesPage() {
     }
   };
 
-  const calculateDays = (startDate: string, endDate: string) => {
+  const calculateDays = (startDate?: string, endDate?: string) => {
+    if (!startDate || !endDate) return 0;
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
@@ -170,22 +130,26 @@ export default function HRLeavesPage() {
                         <div>
                           <p className="text-sm text-gray-600">Start Date</p>
                           <p className="font-medium text-gray-900">
-                            {new Date(leave.start_date).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: '2-digit',
-                            })}
+                            {leave.start_date
+                              ? new Date(leave.start_date).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: '2-digit',
+                                })
+                              : '—'}
                           </p>
                         </div>
 
                         <div>
                           <p className="text-sm text-gray-600">End Date</p>
                           <p className="font-medium text-gray-900">
-                            {new Date(leave.end_date).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: '2-digit',
-                            })}
+                            {leave.end_date
+                              ? new Date(leave.end_date).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: '2-digit',
+                                })
+                              : '—'}
                           </p>
                         </div>
                       </div>
@@ -205,13 +169,13 @@ export default function HRLeavesPage() {
                     {leave.status === 'pending' && (
                       <div className="flex flex-col gap-2 md:flex-row">
                         <button
-                          onClick={() => setSelectedLeave(leave)}
+                          onClick={() => approveMutation.mutate(leave.id)}
                           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
                         >
                           Approve
                         </button>
                         <button
-                          onClick={() => setSelectedLeave(leave)}
+                          onClick={() => rejectMutation.mutate(leave.id)}
                           className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
                         >
                           Reject

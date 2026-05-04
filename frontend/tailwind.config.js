@@ -1,12 +1,17 @@
+const path = require('path');
+const tokens = require(path.resolve(__dirname, './src/constants/design-tokens.json'));
+
 module.exports = {
-  content: ['./app/**/*.{js,jsx,ts,tsx}', './components/**/*.{js,jsx,ts,tsx}', './hooks/**/*.{js,jsx,ts,tsx}', './utils/**/*.{js,jsx,ts,tsx}'],
+  content: ['./src/**/*.{js,jsx,ts,tsx}', './src/app/**/*.{js,jsx,ts,tsx}', './src/components/**/*.{js,jsx,ts,tsx}', './src/hooks/**/*.{js,jsx,ts,tsx}', './src/utils/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        devflx: {
-          DEFAULT: '#1e6fdb',
-          light: '#58a0ff'
-        }
+        primary: tokens.colors.primary,
+        primaryLight: tokens.colors.primaryLight,
+        success: tokens.colors.success,
+        danger: tokens.colors.danger,
+        warning: tokens.colors.warning,
+        neutral: tokens.colors.neutral,
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',

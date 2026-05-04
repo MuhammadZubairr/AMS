@@ -1,20 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
+import BrandLogo from '../BrandLogo';
+import { SuperAdminIcon } from '@/components/superadmin/Icon';
 
 export default function HRSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
 
   const handleLogout = async () => {
     setIsLogoutLoading(true);
     try {
-      const response = await fetch('/api/auth/logout', { method: 'POST' });
-      if (response.ok) {
-        router.push('/login');
-      }
+      await fetch('/api/auth/logout', { method: 'POST' });
+      if (typeof window !== 'undefined') sessionStorage.removeItem('authToken');
+      router.push('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
@@ -23,99 +25,84 @@ export default function HRSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
   };
 
   const menuItems = [
-    {
-      name: 'Dashboard',
-      href: '/hr',
-      icon: '📊',
-    },
-    {
-      name: 'Employees',
-      href: '/hr/employees',
-      icon: '👥',
-    },
-    {
-      name: 'Attendance',
-      href: '/hr/attendance',
-      icon: '📋',
-    },
-    {
-      name: 'Reports',
-      href: '/hr/reports',
-      icon: '📈',
-    },
-    {
-      name: 'Leave Approvals',
-      href: '/hr/leaves',
-      icon: '✓',
-    },
-    {
-      name: 'Profile',
-      href: '/hr/profile',
-      icon: '👤',
-    },
+    { id: 'dashboard', name: 'Dashboard', href: '/hr/dashboard', icon: 'dashboard' },
+    { id: 'employees', name: 'Employees', href: '/hr/employees', icon: 'users' },
+    { id: 'attendance', name: 'Attendance', href: '/hr/attendance', icon: 'attendance' },
+    { id: 'reports', name: 'Reports', href: '/hr/reports', icon: 'reports' },
+    { id: 'leaves', name: 'Leave Approvals', href: '/hr/leaves', icon: 'check' },
+    { id: 'profile', name: 'Profile', href: '/hr/profile', icon: 'profile' },
   ];
 
   return (
     <>
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      <div
+        className={`fixed inset-0 z-30 bg-black/50 transition-opacity duration-300 md:hidden ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen bg-gradient-to-b from-blue-900 to-blue-800 text-white z-40 transition-transform duration-300 transform md:translate-x-0 w-64 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed left-0 top-0 z-40 h-screen w-64 transform border-r border-slate-200 bg-white text-slate-800 shadow-sm transition-[transform,box-shadow] duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo section */}
-          <div className="p-6 border-b border-blue-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-400 rounded-lg flex items-center justify-center font-bold text-blue-900">
-                HR
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">DevFlx HR</h1>
-                <p className="text-xs text-blue-200">Management</p>
-              </div>
+          <div className="flex h-16 items-center justify-between border-b border-slate-100 px-4 md:px-5">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <BrandLogo subtitle="Human Resources" />
             </div>
+            <button
+              type="button"
+              className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 md:hidden"
+              onClick={onClose}
+              aria-label="Close sidebar"
+            >
+              <SuperAdminIcon name="collapse" className="h-5 w-5 rotate-180" />
+            </button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                onClick={onClose}
-              >
-                <span className="text-xl">{item.icon}</span>
-                <span className="font-medium">{item.name}</span>
-              </Link>
-            ))}
+          <nav className="flex-1 min-h-0 space-y-1 p-3 pr-2 overflow-y-auto">
+            {menuItems.map((item) => {
+              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`relative group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:shadow-sm ${
+                    isActive
+                      ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-600/20'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                  title={item.name}
+                >
+                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-10 w-1 rounded-r-full bg-[#2563EB]" />}
+                  <span className={`flex h-10 w-10 min-w-[40px] items-center justify-center rounded-lg ${isActive ? 'bg-white/15' : 'bg-slate-100 text-slate-500 group-hover:bg-white'}`}>
+                    <SuperAdminIcon name={item.icon as any} className="h-5 w-5" />
+                  </span>
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
           </nav>
 
-          {/* Logout button */}
-          <div className="p-4 border-t border-blue-700">
+          <div className="mt-auto border-t border-slate-100 p-4">
             <button
+              type="button"
               onClick={handleLogout}
               disabled={isLogoutLoading}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-700 transition-colors duration-200 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
             >
-              <span className="text-xl">🚪</span>
-              <span className="font-medium">{isLogoutLoading ? 'Logging out...' : 'Logout'}</span>
+              <SuperAdminIcon name="logout" className="h-4 w-4" />
+              <span>{isLogoutLoading ? 'Logging out...' : 'Logout'}</span>
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Mobile spacing */}
-      <div className="md:hidden"></div>
+      <div className="md:hidden" />
     </>
   );
 }

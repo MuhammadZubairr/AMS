@@ -1,26 +1,17 @@
-/**
- * Logger Utility
- * Simple logging utility for the application
- */
+const pino = require('pino');
 
-const logger = {
-  info: (message, ...args) => {
-    console.log(`[INFO] ${new Date().toISOString()} - ${message}`, ...args);
-  },
+const isDev = process.env.NODE_ENV !== 'production';
 
-  warn: (message, ...args) => {
-    console.warn(`[WARN] ${new Date().toISOString()} - ${message}`, ...args);
-  },
-
-  error: (message, ...args) => {
-    console.error(`[ERROR] ${new Date().toISOString()} - ${message}`, ...args);
-  },
-
-  debug: (message, ...args) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.debug(`[DEBUG] ${new Date().toISOString()} - ${message}`, ...args);
-    }
-  }
-};
+const logger = pino(
+  isDev
+    ? {
+        transport: {
+          target: 'pino-pretty',
+          options: { colorize: true, translateTime: 'SYS:standard' },
+        },
+        level: process.env.LOG_LEVEL || 'debug',
+      }
+    : { level: process.env.LOG_LEVEL || 'info' }
+);
 
 module.exports = logger;

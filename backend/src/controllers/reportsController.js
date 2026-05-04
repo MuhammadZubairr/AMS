@@ -1,4 +1,5 @@
 const reportModel = require('../models/reportModel');
+const { cacheGet, cacheSet } = require('../config/redis');
 
 /**
  * Daily report endpoint
@@ -21,7 +22,19 @@ async function dailyReport(req, res, next) {
 async function monthlyReport(req, res, next) {
   try {
     const { year, month } = req.query;
-    const data = await reportModel.getMonthlyReport(year ? parseInt(year, 10) : null, month ? parseInt(month, 10) : null);
+    const y = year ? parseInt(year, 10) : null;
+    const m = month ? parseInt(month, 10) : null;
+    const cacheKey = `reports:monthly:${y || 'current'}:${m || 'current'}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      return res.json({ ok: true, data: cached });
+    }
+
+    const data = await reportModel.getMonthlyReport(y, m);
+    try {
+      await cacheSet(cacheKey, data, 20); // 20s cache
+    } catch (err) {}
+
     res.json({ ok: true, data });
   } catch (err) {
     next(err);

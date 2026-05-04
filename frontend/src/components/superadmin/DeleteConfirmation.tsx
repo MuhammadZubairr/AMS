@@ -34,14 +34,14 @@ export function DeleteConfirmation({
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+            className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-200 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+            className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
           >
             {isLoading ? 'Deleting...' : 'Delete'}
           </button>
@@ -49,8 +49,8 @@ export function DeleteConfirmation({
       }
     >
       <div>
-        <p className="text-gray-700">{message}</p>
-        {itemName && <p className="mt-2 font-semibold text-gray-900">{itemName}</p>}
+        <p className="text-slate-700">{message}</p>
+        {itemName && <p className="mt-2 font-semibold text-slate-900">{itemName}</p>}
         <p className="mt-4 text-sm text-red-600">This action cannot be undone.</p>
       </div>
     </Modal>

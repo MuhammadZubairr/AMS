@@ -1,35 +1,44 @@
-import { useQuery } from '@tanstack/react-query';
-import { SUPERADMIN_ATTENDANCE } from '@/constants/endpoints';
-import { AttendanceRecord } from '@/types/superadmin';
-
-async function fetchAttendance(period: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}${SUPERADMIN_ATTENDANCE}?period=${period}`, {
-    credentials: 'include',
-  });
-  if (!res.ok) throw new Error('Failed to fetch attendance');
-  const json = await res.json();
-  return json.data.attendance as AttendanceRecord[];
-}
-
-export function useAttendance(period: string) {
-  return useQuery({
-    queryKey: ['superadmin', 'attendance', period],
-    queryFn: () => fetchAttendance(period),
-  });
-}
 /**
  * Super Admin React Query Hooks
  * All data fetching and mutations for super admin
  */
 
-import { useMutation, QueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, QueryClient } from '@tanstack/react-query';
+import { SUPERADMIN_ATTENDANCE } from '@/constants/endpoints';
 import * as superadminApi from '@/services/superadminApi';
 import {
+  AttendanceRecord,
   DashboardData,
   User,
   CreateUserRequest,
   UpdateUserRequest,
 } from '@/types/superadmin';
+
+async function fetchAttendance(period: string): Promise<AttendanceRecord[]> {
+  const url = `${process.env.NEXT_PUBLIC_API_URL || ''}${SUPERADMIN_ATTENDANCE}?period=${encodeURIComponent(
+    period
+  )}`;
+
+  const headers: Record<string, string> = {};
+  try {
+    if (typeof window !== 'undefined') {
+      const token = sessionStorage.getItem('authToken');
+      if (token) headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  const res = await fetch(url, {
+    credentials: 'include',
+    headers,
+  });
+
+  if (!res.ok) throw new Error('Failed to fetch attendance');
+
+  const json = await res.json();
+  return json.data.attendance as AttendanceRecord[];
+}
 
 // Query Keys
 export const superadminKeys = {
@@ -43,6 +52,16 @@ export const superadminKeys = {
   employees: () => [...superadminKeys.all, 'employees'] as const,
   attendance: () => [...superadminKeys.all, 'attendance'] as const,
 } as const;
+
+/**
+ * Fetch attendance records
+ */
+export function useAttendance(period: string) {
+  return useQuery({
+    queryKey: [...superadminKeys.attendance(), period],
+    queryFn: () => fetchAttendance(period),
+  });
+}
 
 /**
  * Fetch dashboard data

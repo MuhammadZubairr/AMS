@@ -11,44 +11,35 @@ import { Navbar } from './Navbar';
 
 interface SuperAdminLayoutProps {
   children: React.ReactNode;
+  title?: string;
 }
 
-export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
-    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+export function SuperAdminLayout({ children, title = 'Dashboard' }: SuperAdminLayoutProps) {
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
-      <Sidebar />
-
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-30"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Mobile Sidebar */}
+    <div className="min-h-screen bg-[#F9FAFB] text-slate-900">
       <div
-        className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 overflow-y-auto md:hidden transition-transform transform z-40 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-0 z-30 bg-slate-950/40 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${
+          isMobileSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
-      >
-        <Sidebar />
-      </div>
+        onClick={() => setIsMobileSidebarOpen(false)}
+        aria-hidden="true"
+      />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col md:ml-64">
-        {/* Navbar */}
+      <Sidebar collapsed={isSidebarCollapsed} mobileOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
+
+      <div className={`transition-[padding-left] duration-300 ease-in-out ${isSidebarCollapsed ? 'md:pl-20' : 'md:pl-72'}`}>
         <Navbar
-          sidebarOpen={isSidebarOpen}
-          setSidebarOpen={setIsSidebarOpen}
+          title={title}
+          sidebarCollapsed={isSidebarCollapsed}
+          onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+          onCollapseToggle={() => setIsSidebarCollapsed((value) => !value)}
         />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto pt-16 pb-6">
-          <div className="px-8 py-6">{children}</div>
+        <main className="pb-8 pt-20">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </div>

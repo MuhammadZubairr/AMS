@@ -10,12 +10,15 @@ import { Formik, Form } from 'formik';
 import { useQueryClient } from '@tanstack/react-query';
 import { SuperAdminLayout } from '@/components/superadmin/Layout';
 import { DataTable, TableColumn } from '@/components/superadmin/DataTable';
-import { FormField, FormSubmit } from '@/components/superadmin/FormFields';
+import ActionMenu from '@/components/superadmin/ActionMenu';
+import { Modal } from '@/components/superadmin/Modal';
+import { formatDate } from '@/utils/formatDate';
+import { CreateUserForm, CreateUserFormValues } from '@/components/superadmin/CreateUserForm';
+import { FormField } from '@/components/superadmin/FormFields';
 import { LoadingState, ErrorState, EmptyState } from '@/components/superadmin/States';
 import { DeleteConfirmation } from '@/components/superadmin/DeleteConfirmation';
 import { useManagers, useCreateManager, useDeleteUser } from '@/hooks/useSuperAdmin';
 import { updateManager } from '@/services/superadminApi';
-import { createManagerSchema, CreateManagerFormData } from '@/schemas/superadmin';
 import { User } from '@/types/superadmin';
 import * as yup from 'yup';
 
@@ -71,9 +74,13 @@ export default function ManagersPage() {
     }
   }, [notification]);
 
-  const handleCreateManager = async (values: CreateManagerFormData) => {
+  const handleCreateManager = async (values: CreateUserFormValues) => {
     try {
-      const response = await createMutation.mutateAsync(values);
+      const response = await createMutation.mutateAsync({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      });
       if (response.ok) {
         setNotification({
           type: 'success',
@@ -154,7 +161,7 @@ export default function ManagersPage() {
     {
       key: 'created_at',
       label: 'Created',
-      render: (value) => new Date(String(value)).toLocaleDateString(),
+      render: (value) => formatDate(value as any),
     },
   ];
 
@@ -186,7 +193,7 @@ export default function ManagersPage() {
             </div>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="btn-create-action px-6 py-2 transition-colors font-medium"
             >
               ➕ Add Manager
             </button>
@@ -224,20 +231,12 @@ export default function ManagersPage() {
                 columns={columns}
                 data={filteredManagers}
                 actions={(manager) => (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setEditManager(manager)}
-                      className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm({ open: true, user: manager })}
-                      className="text-red-600 hover:text-red-800 font-medium text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <ActionMenu
+                    items={[
+                      { label: 'Edit', onClick: () => setEditManager(manager), accent: 'primary' },
+                      { label: 'Delete', onClick: () => setDeleteConfirm({ open: true, user: manager }), accent: 'danger' },
+                    ]}
+                  />
                 )}
               />
             </div>
@@ -253,7 +252,7 @@ export default function ManagersPage() {
           ) : (
             filteredManagers.map((manager: User) =>  (
               <div key={manager.id} className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="space-y-3">
+                  <div className="space-y-3">
                   {/* Name */}
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Name</p>
@@ -269,23 +268,17 @@ export default function ManagersPage() {
                   {/* Created Date */}
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wide">Created</p>
-                    <p className="text-gray-700 text-sm">{new Date(manager.created_at).toLocaleDateString()}</p>
+                    <p className="text-gray-700 text-sm">{formatDate(manager.created_at)}</p>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      onClick={() => setEditManager(manager)}
-                      className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm({ open: true, user: manager })}
-                      className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm"
-                    >
-                      Delete
-                    </button>
+                  <div className="flex justify-end pt-2">
+                    <ActionMenu
+                      items={[
+                        { label: 'Edit', onClick: () => setEditManager(manager), accent: 'primary' },
+                        { label: 'Delete', onClick: () => setDeleteConfirm({ open: true, user: manager }), accent: 'danger' },
+                      ]}
+                    />
                   </div>
                 </div>
               </div>
@@ -350,67 +343,15 @@ export default function ManagersPage() {
 
         {/* Create Manager Modal */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-lg font-bold text-gray-900">Create Manager</h2>
-                <button
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-                >
-                  ×
-                </button>
-              </div>
-
-              <Formik
-                initialValues={{ name: '', email: '', password: '' }}
-                validationSchema={createManagerSchema}
+          <Modal isOpen={isCreateModalOpen} title="Create Manager" onClose={() => setIsCreateModalOpen(false)}>
+              <CreateUserForm
+                submitLabel="Create Manager"
+                lockedRole="manager"
+                initialRole="manager"
                 onSubmit={handleCreateManager}
-              >
-                {({ errors, touched, isSubmitting }) => (
-                  <Form>
-                    <div className="p-6 space-y-4">
-                      <FormField
-                        name="name"
-                        label="Full Name"
-                        placeholder="John Doe"
-                        error={errors.name}
-                        touched={touched.name}
-                      />
-                      <FormField
-                        name="email"
-                        label="Email"
-                        type="email"
-                        placeholder="john@example.com"
-                        error={errors.email}
-                        touched={touched.email}
-                      />
-                      <FormField
-                        name="password"
-                        label="Password"
-                        type="password"
-                        placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special"
-                        error={errors.password}
-                        touched={touched.password}
-                      />
-                    </div>
-
-                    <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
-                      <button
-                        type="button"
-                        onClick={() => setIsCreateModalOpen(false)}
-                        disabled={isSubmitting}
-                        className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <FormSubmit label="Create Manager" isLoading={isSubmitting} />
-                    </div>
-                  </Form>
-                )}
-              </Formik>
-            </div>
-          </div>
+                onCancel={() => setIsCreateModalOpen(false)}
+              />
+          </Modal>
         )}
 
         {/* Edit Manager Modal */}

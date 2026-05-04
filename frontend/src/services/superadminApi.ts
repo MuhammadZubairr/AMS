@@ -22,10 +22,22 @@ async function apiCall<T>(
   body?: any
 ): Promise<ApiResponse<T>> {
   try {
+    // attach per-tab token (sessionStorage) if present to support Authorization header
+    let authHeader: Record<string, string> = {};
+    try {
+      if (typeof window !== 'undefined') {
+        const token = sessionStorage.getItem('authToken');
+        if (token) authHeader = { Authorization: `Bearer ${token}` };
+      }
+    } catch (e) {
+      // ignore sessionStorage errors in non-browser environments
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader,
       },
       credentials: 'include',
       body: body ? JSON.stringify(body) : undefined,
@@ -34,9 +46,25 @@ async function apiCall<T>(
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      // If forbidden and no per-tab token was provided, add guidance
+      const baseError = data.error || `Request failed with status ${response.status}`;
+      if (response.status === 403) {
+        const hasHeader = !!authHeader.Authorization;
+        const guidance = hasHeader
+          ? ''
+          : ' (no per-tab Authorization token present; try logging in on this tab)';
+
+        return {
+          ok: false,
+          error: `${baseError}${guidance}`,
+          status: response.status,
+        };
+      }
+
       return {
         ok: false,
-        error: data.error || `Request failed with status ${response.status}`,
+        error: baseError,
+        status: response.status,
       };
     }
 

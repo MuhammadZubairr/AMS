@@ -28,55 +28,57 @@ export function DataTable<T extends { id: number | string }>({
 }: DataTableProps<T>) {
   if (isLoading) {
     return (
-      <div className="animate-pulse">
+      <div className="space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-12 bg-gray-200 mb-2 rounded"></div>
+          <div key={i} className="h-14 animate-pulse rounded-2xl bg-slate-100" />
         ))}
       </div>
     );
   }
 
   if (data.length === 0) {
-    return <p className="text-center py-8 text-gray-500">No data available</p>;
+    return <p className="rounded-3xl border border-slate-200 bg-white px-6 py-10 text-center text-slate-500 shadow-sm">No data available</p>;
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-100 border-b border-gray-200">
-            {columns.map((col) => (
-              <th
-                key={String(col.key)}
-                className="px-6 py-3 text-left text-sm font-semibold text-gray-700"
-                style={{ width: col.width }}
-              >
-                {col.label}
-              </th>
-            ))}
-            {actions && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr
-              key={item.id}
-              onClick={() => onRowClick?.(item)}
-              className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              {columns.map((col) => {
-                const value = (item as any)[col.key as string];
-                return (
-                  <td key={String(col.key)} className="px-6 py-4 text-sm text-gray-700">
-                    {col.render ? col.render(value, item) : value}
-                  </td>
-                );
-              })}
-              {actions && <td className="px-6 py-4 text-sm">{actions(item)}</td>}
+    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse">
+          <thead className="bg-slate-50">
+            <tr className="border-b border-slate-200">
+              {columns.map((col) => (
+                <th
+                  key={String(col.key)}
+                  className="whitespace-nowrap px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-500"
+                  style={{ width: col.width }}
+                >
+                  {col.label}
+                </th>
+              ))}
+              {actions && <th className="whitespace-nowrap px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Actions</th>}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {data.map((item) => (
+              <tr
+                key={item.id}
+                onClick={() => onRowClick?.(item)}
+                className={`transition hover:bg-slate-50 ${onRowClick ? 'cursor-pointer' : ''}`}
+              >
+                {columns.map((col) => {
+                  const value = (item as any)[col.key as string];
+                  return (
+                    <td key={String(col.key)} className="whitespace-nowrap px-5 py-4 text-sm text-slate-700">
+                      {col.render ? col.render(value, item) : value}
+                    </td>
+                  );
+                })}
+                {actions && <td className="whitespace-nowrap px-5 py-4 text-sm">{actions(item)}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

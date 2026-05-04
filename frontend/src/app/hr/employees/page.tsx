@@ -1,34 +1,16 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useState } from 'react';
 import HRLayout from '@/components/hr/Layout';
-
-interface Employee {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  created_at: string;
-}
-
-interface PaginatedResponse {
-  employees: Employee[];
-  total: number;
-  limit: number;
-  offset: number;
-}
-
-const employeeValidationSchema = Yup.object({
-  name: Yup.string().required('Name is required').min(2, 'Name must be at least 2 characters'),
-  email: Yup.string().email('Invalid email').required('Email is required'),
-  password: Yup.string().min(8, 'Password must be at least 8 characters'),
-});
+import { formatDate } from '@/utils/formatDate';
+import { Modal } from '@/components/superadmin/Modal';
+import { CreateUserForm, CreateUserFormValues } from '@/components/superadmin/CreateUserForm';
+import { useHREmployees, useCreateEmployee, useUpdateEmployee, useDeleteEmployee } from '@/hooks/hr/useHREmployees';
+import type { Employee } from '@/types/hr';
 
 export default function HREmployeesPage() {
-  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -37,82 +19,15 @@ export default function HREmployeesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
   const itemsPerPage = 10;
-  const offset = (page - 1) * itemsPerPage;
 
-  // Fetch employees
-  const { data, isLoading, error } = useQuery<PaginatedResponse>({
-    queryKey: ['hrEmployees', search, page],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        search,
-        limit: itemsPerPage.toString(),
-        offset: offset.toString(),
-      });
-      const response = await fetch(`/api/hr/employees?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch employees');
-      return response.json();
-    },
-  });
+  // Use hooks instead of direct fetch
+  const employeesQuery = useHREmployees();
+  const createMutation = useCreateEmployee();
+  const updateMutation = useUpdateEmployee();
+  const deleteMutation = useDeleteEmployee();
 
-  // Create employee mutation
-  const createMutation = useMutation({
-    mutationFn: async (values: { name: string; email: string; password: string }) => {
-      const response = await fetch('/api/hr/employees', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      if (!response.ok) throw new Error('Failed to create employee');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hrEmployees'] });
-      setIsCreateOpen(false);
-      createForm.resetForm();
-    },
-  });
-
-  // Update employee mutation
-  const updateMutation = useMutation({
-    mutationFn: async (values: { name: string; email: string }) => {
-      if (!editingEmployee) throw new Error('No employee selected');
-      const response = await fetch(`/api/hr/employees/${editingEmployee.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      if (!response.ok) throw new Error('Failed to update employee');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hrEmployees'] });
-      setIsEditOpen(false);
-      setEditingEmployee(null);
-      editForm.resetForm();
-    },
-  });
-
-  // Delete employee mutation
-  const deleteMutation = useMutation({
-    mutationFn: async (employeeId: number) => {
-      const response = await fetch(`/api/hr/employees/${employeeId}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete employee');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hrEmployees'] });
-      setDeleteConfirm(null);
-    },
-  });
-
-  // Create form
-  const createForm = useFormik({
-    initialValues: { name: '', email: '', password: '' },
-    validationSchema: employeeValidationSchema,
-    onSubmit: (values) => createMutation.mutate(values),
-  });
+  const isLoading = employeesQuery.isLoading;
+  const error = employeesQuery.error;
 
   // Edit form
   const editForm = useFormik({
@@ -125,10 +40,38 @@ export default function HREmployeesPage() {
       email: Yup.string().email('Invalid email').required('Email is required'),
     }),
     enableReinitialize: true,
-    onSubmit: (values) => updateMutation.mutate(values),
+    onSubmit: (values) => {
+      if (editingEmployee) {
+        updateMutation.mutate({ id: editingEmployee.id, payload: values });
+      }
+    },
   });
 
-  const totalPages = data ? Math.ceil(data.total / itemsPerPage) : 0;
+  // Support both paginated responses and plain array responses
+  const raw = employeesQuery.data as any;
+  const employees: Employee[] = Array.isArray(raw)
+    ? raw
+    : raw?.data?.employees ?? raw?.employees ?? [];
+
+  const total: number = Array.isArray(raw)
+    ? employees.length
+    : typeof raw?.data?.total === 'number'
+    ? raw.data.total
+    : typeof raw?.total === 'number'
+    ? raw.total
+    : employees.length;
+
+  const totalPages = total ? Math.ceil(total / itemsPerPage) : 0;
+  const paginatedEmployees = employees.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+  const handleCreateEmployee = async (values: CreateUserFormValues) => {
+    await createMutation.mutateAsync({
+      name: values.name,
+      email: values.email,
+      role: 'employee',
+    } as any);
+    setIsCreateOpen(false);
+  };
 
   return (
     <HRLayout>
@@ -141,7 +84,7 @@ export default function HREmployeesPage() {
           </div>
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+            className="btn-create-action font-medium px-4 py-2 transition-colors"
           >
             + Add Employee
           </button>
@@ -180,7 +123,7 @@ export default function HREmployeesPage() {
         )}
 
         {/* Employees table */}
-        {!isLoading && data && (
+        {!isLoading && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -193,7 +136,7 @@ export default function HREmployeesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {data.employees.map((employee) => (
+                {paginatedEmployees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm text-gray-900">{employee.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{employee.email}</td>
@@ -203,7 +146,7 @@ export default function HREmployeesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(employee.created_at).toLocaleDateString()}
+                      {formatDate(employee.created_at)}
                     </td>
                     <td className="px-6 py-4 text-sm text-right space-x-2">
                       <button
@@ -230,7 +173,7 @@ export default function HREmployeesPage() {
             {/* Pagination */}
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
               <p className="text-sm text-gray-600">
-                Showing {offset + 1} to {Math.min(offset + itemsPerPage, data.total)} of {data.total}
+                Showing {total === 0 ? 0 : (page - 1) * itemsPerPage + 1} to {Math.min(page * itemsPerPage, total)} of {total}
               </p>
               <div className="flex gap-2">
                 <button
@@ -268,70 +211,15 @@ export default function HREmployeesPage() {
         {/* Modals */}
 
         {/* Create Modal */}
-        {isCreateOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Add New Employee</h3>
-              <form onSubmit={createForm.handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                  <input
-                    type="text"
-                    {...createForm.getFieldProps('name')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {createForm.touched.name && createForm.errors.name && (
-                    <p className="text-red-600 text-sm mt-1">{createForm.errors.name}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    {...createForm.getFieldProps('email')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {createForm.touched.email && createForm.errors.email && (
-                    <p className="text-red-600 text-sm mt-1">{createForm.errors.email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                  <input
-                    type="password"
-                    {...createForm.getFieldProps('password')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {createForm.touched.password && createForm.errors.password && (
-                    <p className="text-red-600 text-sm mt-1">{createForm.errors.password}</p>
-                  )}
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={createMutation.isPending}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {createMutation.isPending ? 'Creating...' : 'Create'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsCreateOpen(false);
-                      createForm.resetForm();
-                    }}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-2 rounded-lg transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        <Modal isOpen={isCreateOpen} title="Add New Employee" onClose={() => setIsCreateOpen(false)}>
+          <CreateUserForm
+            submitLabel={createMutation.isPending ? 'Creating...' : 'Create Employee'}
+            lockedRole="employee"
+            initialRole="employee"
+            onSubmit={handleCreateEmployee}
+            onCancel={() => setIsCreateOpen(false)}
+          />
+        </Modal>
 
         {/* Edit Modal */}
         {isEditOpen && editingEmployee && (

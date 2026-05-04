@@ -6,17 +6,18 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Formik, Form } from 'formik';
 import { useQueryClient } from '@tanstack/react-query';
 import { SuperAdminLayout } from '@/components/superadmin/Layout';
 import { DataTable, TableColumn } from '@/components/superadmin/DataTable';
-import { FormField, FormSubmit } from '@/components/superadmin/FormFields';
+import ActionMenu from '@/components/superadmin/ActionMenu';
+import { Modal } from '@/components/superadmin/Modal';
 import { LoadingState, ErrorState, EmptyState } from '@/components/superadmin/States';
 import { DeleteConfirmation } from '@/components/superadmin/DeleteConfirmation';
 import { useEmployees, useCreateUser, useDeleteUser } from '@/hooks/useSuperAdmin';
-import { createUserSchema, CreateUserFormData } from '@/schemas/superadmin';
+import { CreateUserForm, CreateUserFormValues } from '@/components/superadmin/CreateUserForm';
 import { User } from '@/types/superadmin';
 import * as yup from 'yup';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 
 const EMPLOYEES_PER_PAGE = 10;
 
@@ -57,9 +58,14 @@ export default function EmployeesPage() {
   }, [data?.users, searchQuery]);
 
   // Handle create employee
-  const handleCreateEmployee = async (values: CreateUserFormData & { role: string }) => {
+  const handleCreateEmployee = async (values: CreateUserFormValues) => {
     try {
-      await createMutation.mutateAsync({ ...values, role: 'employee' });
+      await createMutation.mutateAsync({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        role: 'employee',
+      });
       setIsCreateModalOpen(false);
       setNotification({ type: 'success', message: 'Employee created successfully' });
       setTimeout(() => setNotification(null), 3000);
@@ -72,7 +78,7 @@ export default function EmployeesPage() {
   };
 
   // Handle update employee
-  const handleUpdateEmployee = async (_values: { name: string; email: string }) => {
+  const handleUpdateEmployee = async () => {
     if (!editEmployee) return;
     try {
       setIsUpdating(true);
@@ -144,7 +150,7 @@ export default function EmployeesPage() {
           </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="btn-create-action px-6 py-3 transition-colors font-medium"
           >
             ➕ Add Employee
           </button>
@@ -179,26 +185,26 @@ export default function EmployeesPage() {
 
         {/* Data Table */}
         {filteredEmployees.length === 0 ? (
-          <EmptyState title="No Employees" message="No employees found" />
+          <EmptyState title="No Employees Found" message="Try adjusting your search or filters." />
         ) : (
           <DataTable<User>
             columns={columns}
             data={filteredEmployees}
             actions={(employee) => (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEditEmployee(employee)}
-                  className="px-3 py-1 text-sm bg-amber-100 text-amber-800 rounded hover:bg-amber-200"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm({ open: true, user: employee })}
-                  className="px-3 py-1 text-sm bg-red-100 text-red-800 rounded hover:bg-red-200"
-                >
-                  Delete
-                </button>
-              </div>
+              <ActionMenu
+                items={[
+                  {
+                    label: 'Edit',
+                    onClick: () => setEditEmployee(employee),
+                    accent: 'primary',
+                  },
+                  {
+                    label: 'Delete',
+                    onClick: () => setDeleteConfirm({ open: true, user: employee }),
+                    accent: 'danger',
+                  },
+                ]}
+              />
             )}
           />
         )}
@@ -222,52 +228,15 @@ export default function EmployeesPage() {
 
         {/* Create Modal */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Add Employee</h2>
-              <Formik
-                initialValues={{ name: '', email: '', password: '', role: 'employee' }}
-                validationSchema={createUserSchema}
+          <Modal isOpen={isCreateModalOpen} title="Add Employee" onClose={() => setIsCreateModalOpen(false)}>
+              <CreateUserForm
+                submitLabel="Create Employee"
+                lockedRole="employee"
+                initialRole="employee"
                 onSubmit={handleCreateEmployee}
-              >
-                {({ errors, touched, isSubmitting }) => (
-                  <Form className="space-y-4">
-                    <FormField
-                      name="name"
-                      label="Full Name"
-                      type="text"
-                      placeholder="John Doe"
-                      error={touched.name ? errors.name : undefined}
-                    />
-                    <FormField
-                      name="email"
-                      label="Email"
-                      type="email"
-                      placeholder="john@example.com"
-                      error={touched.email ? errors.email : undefined}
-                    />
-                    <FormField
-                      name="password"
-                      label="Password"
-                      type="password"
-                      placeholder="••••••••"
-                      error={touched.password ? errors.password : undefined}
-                    />
-                    <div className="flex gap-2 pt-4">
-                      <button
-                        type="button"
-                        onClick={() => setIsCreateModalOpen(false)}
-                        className="flex-1 px-4 py-2 border border-gray-300 text-gray-900 rounded-lg hover:bg-gray-50"
-                      >
-                        Cancel
-                      </button>
-                      <FormSubmit label="Create" isLoading={isSubmitting} />
-                    </div>
-                  </Form>
-                )}
-              </Formik>
-            </div>
-          </div>
+                onCancel={() => setIsCreateModalOpen(false)}
+              />
+          </Modal>
         )}
 
         {/* Edit Modal */}
@@ -280,22 +249,28 @@ export default function EmployeesPage() {
                 validationSchema={editEmployeeSchema}
                 onSubmit={handleUpdateEmployee}
               >
-                {({ errors, touched, isSubmitting }) => (
+                {({ isSubmitting }) => (
                   <Form className="space-y-4">
-                    <FormField
-                      name="name"
-                      label="Full Name"
-                      type="text"
-                      placeholder="John Doe"
-                      error={touched.name ? errors.name : undefined}
-                    />
-                    <FormField
-                      name="email"
-                      label="Email"
-                      type="email"
-                      placeholder="john@example.com"
-                      error={touched.email ? errors.email : undefined}
-                    />
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                      <Field
+                        name="name"
+                        type="text"
+                        placeholder="John Doe"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <ErrorMessage name="name" component="div" className="text-red-500 text-sm" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Email</label>
+                      <Field
+                        name="email"
+                        type="email"
+                        placeholder="john@example.com"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <ErrorMessage name="email" component="div" className="text-red-500 text-sm" />
+                    </div>
                     <div className="flex gap-2 pt-4">
                       <button
                         type="button"
@@ -304,7 +279,13 @@ export default function EmployeesPage() {
                       >
                         Cancel
                       </button>
-                      <FormSubmit label="Update" isLoading={isSubmitting || isUpdating} />
+                      <button
+                        type="submit"
+                        disabled={isSubmitting || isUpdating}
+                        className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSubmitting || isUpdating ? 'Updating...' : 'Update'}
+                      </button>
                     </div>
                   </Form>
                 )}

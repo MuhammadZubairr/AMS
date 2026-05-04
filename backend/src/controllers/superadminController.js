@@ -6,6 +6,8 @@
 const userModel = require('../models/userModel');
 const authService = require('../services/authService');
 const attendanceModel = require('../models/attendanceModel');
+const ROLES = require('../constants/roles');
+const { cacheGet, cacheSet } = require('../config/redis');
 
 /**
  * Get dashboard statistics
@@ -13,32 +15,44 @@ const attendanceModel = require('../models/attendanceModel');
  */
 async function getDashboard(req, res, next) {
   try {
+    // Try short-lived cache first
+    const cacheKey = 'dashboard:superadmin';
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      return res.json({ ok: true, data: cached });
+    }
     const [totalUsers, totalManagers, totalHr, totalEmployees, totalSuperAdmins, todayAttendance, absentCount] = await Promise.all([
       userModel.countTotal(),
-      userModel.countByRole('manager'),
-      userModel.countByRole('hr'),
-      userModel.countByRole('employee'),
-      userModel.countByRole('superadmin'),
+      userModel.countByRole(ROLES.MANAGER),
+      userModel.countByRole(ROLES.HR),
+      userModel.countByRole(ROLES.EMPLOYEE),
+      userModel.countByRole(ROLES.SUPERADMIN),
       attendanceModel.getTodayAttendanceCount(),
       attendanceModel.getAbsentCount(),
     ]);
 
-    res.json({
-      ok: true,
-      data: {
-        totalUsers,
-        breakdown: {
-          superadmins: totalSuperAdmins,
-          managers: totalManagers,
-          hr: totalHr,
-          employees: totalEmployees,
-        },
-        attendance: {
-          todayCount: todayAttendance,
-          absentCount: absentCount,
-        },
+    const payload = {
+      totalUsers,
+      breakdown: {
+        superadmins: totalSuperAdmins,
+        managers: totalManagers,
+        hr: totalHr,
+        employees: totalEmployees,
       },
-    });
+      attendance: {
+        todayCount: todayAttendance,
+        absentCount: absentCount,
+      },
+    };
+
+    // Cache for a short period to reduce DB pressure on dashboard refreshes
+    try {
+      await cacheSet(cacheKey, payload, 10); // 10s cache
+    } catch (err) {
+      // non-fatal
+    }
+
+    res.json({ ok: true, data: payload });
   } catch (error) {
     next(error);
   }
@@ -92,7 +106,7 @@ async function createManager(req, res, next) {
 
     // Create manager
     const user = await authService.createUserByAdmin(
-      { email, password, name, role: 'manager' },
+      { email, password, name, role: ROLES.MANAGER },
       req.user.id
     );
 
@@ -124,7 +138,7 @@ async function createHr(req, res, next) {
 
     // Create HR user
     const user = await authService.createUserByAdmin(
-      { email, password, name, role: 'hr' },
+      { email, password, name, role: ROLES.HR },
       req.user.id
     );
 
@@ -243,7 +257,7 @@ async function updateUserRole(req, res, next) {
     }
 
     // If role is provided, validate it
-    const validRoles = ['superadmin', 'manager', 'hr', 'employee'];
+    const validRoles = [ROLES.SUPERADMIN, ROLES.MANAGER, ROLES.HR, ROLES.EMPLOYEE];
     if (role && !validRoles.includes(role)) {
       const error = new Error(`Invalid role. Allowed roles: ${validRoles.join(', ')}`);
       error.status = 400;
@@ -308,7 +322,7 @@ async function deleteUser(req, res, next) {
       throw error;
     }
 
-    if (targetUser.role === 'superadmin') {
+    if (targetUser.role === ROLES.SUPERADMIN) {
       const error = new Error('Cannot delete another superadmin');
       error.status = 403;
       throw error;
@@ -338,7 +352,7 @@ async function getManagers(req, res, next) {
     const result = await userModel.getAllUsers({
       limit: parseInt(limit, 10),
       offset: parseInt(offset, 10),
-      role: 'manager',
+      role: ROLES.MANAGER,
       search: search || null,
     });
 
@@ -391,7 +405,7 @@ async function updateManager(req, res, next) {
       throw error;
     }
 
-    if (manager.role !== 'manager') {
+    if (manager.role !== ROLES.MANAGER) {
       const error = new Error('User is not a manager');
       error.status = 400;
       throw error;
@@ -436,7 +450,7 @@ async function getHR(req, res, next) {
     const result = await userModel.getAllUsers({
       limit: parseInt(limit, 10),
       offset: parseInt(offset, 10),
-      role: 'hr',
+      role: ROLES.HR,
       search: search || null,
     });
 
@@ -489,7 +503,7 @@ async function updateHR(req, res, next) {
       throw error;
     }
 
-    if (hrUser.role !== 'hr') {
+    if (hrUser.role !== ROLES.HR) {
       const error = new Error('User is not an HR user');
       error.status = 400;
       throw error;

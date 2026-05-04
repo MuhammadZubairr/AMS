@@ -23,24 +23,21 @@ export function Modal({ isOpen, title, children, onClose, footer, size = 'md' }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`bg-white rounded-lg shadow-xl ${sizeClasses[size]}`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+      <div className={`max-h-[90vh] w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl ${sizeClasses[size]}`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-          >
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+          <button onClick={onClose} className="text-2xl leading-none text-slate-500 transition hover:text-slate-700">
             ×
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6">{children}</div>
+        <div className="max-h-[calc(90vh-140px)] overflow-y-auto p-6">{children}</div>
 
         {/* Footer - optional button group */}
-        {footer && <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">{footer}</div>}
+        {footer && <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">{footer}</div>}
       </div>
     </div>
   );

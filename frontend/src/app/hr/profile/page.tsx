@@ -1,20 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import HRLayout from '@/components/hr/Layout';
-
-interface UserProfile {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  created_at: string;
-}
-
-interface ProfileResponse {
-  user: UserProfile;
-}
+import { useMe } from '@/hooks/useAuthQuery';
+import { changePassword } from '@/api/auth';
 
 export default function HRProfilePage() {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
@@ -22,14 +11,7 @@ export default function HRProfilePage() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState('');
 
-  const { data: profile, isLoading, error } = useQuery<ProfileResponse>({
-    queryKey: ['userProfile'],
-    queryFn: async () => {
-      const response = await fetch('/api/auth/me', { credentials: 'include' });
-      if (!response.ok) throw new Error('Failed to fetch profile');
-      return response.json();
-    },
-  });
+  const { data: profile, isLoading, error } = useMe();
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,19 +23,13 @@ export default function HRProfilePage() {
 
     setPasswordLoading(true);
     try {
-      const response = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
-        }),
+      const response = await changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        setPasswordMessage(error.error || error.message || 'Failed to change password');
+        setPasswordMessage((response as any).error || 'Failed to change password');
         return;
       }
 

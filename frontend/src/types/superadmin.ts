@@ -23,6 +23,13 @@ export interface User {
   created_at: string;
 }
 
+export interface ManagedUser extends User {
+  department?: string;
+  phone?: string;
+  status?: 'active' | 'suspended';
+  createdByLabel?: string;
+}
+
 // Dashboard Statistics
 export interface DashboardStats {
   totalUsers: number;
@@ -55,6 +62,81 @@ export interface DashboardData {
   };
 }
 
+export interface DashboardMetric {
+  title: string;
+  value: number | string;
+  icon: string;
+  tone: 'blue' | 'green' | 'red' | 'purple';
+  change: string;
+}
+
+export interface AttendanceOverviewMetric {
+  title: string;
+  value: number;
+  color: string;
+}
+
+export interface RecentActivity {
+  user: string;
+  action: string;
+  role: string;
+  date: string;
+}
+
+export interface DepartmentRecord {
+  id: number;
+  name: string;
+  totalEmployees: number;
+  createdAt: string;
+}
+
+export interface OfficeLocationRecord {
+  id: number;
+  officeName: string;
+  latitude: string;
+  longitude: string;
+  radius: number;
+}
+
+export interface AttendanceMonitoringRecord {
+  id: number;
+  employeeName: string;
+  department: string;
+  date: string;
+  checkIn: string;
+  checkOut: string;
+  workType: 'Work From Office' | 'Work From Home';
+  gpsVerified: boolean;
+}
+
+export interface ActivityLogRecord {
+  id: number;
+  user: string;
+  action: string;
+  module: string;
+  date: string;
+  ipAddress: string;
+}
+
+export interface SystemSettings {
+  companyName: string;
+  officeAddress: string;
+  defaultOfficeRadius: number;
+  workStartTime: string;
+  workEndTime: string;
+}
+
+export interface ProfileSettings {
+  name: string;
+  email: string;
+  avatarUrl: string;
+}
+
+export interface ReportSeriesPoint {
+  label: string;
+  value: number;
+}
+
 // Create User Request
 export interface CreateUserRequest {
   name: string;
@@ -75,6 +157,7 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
+  status?: number;
 }
 
 export interface ListResponse<T> {

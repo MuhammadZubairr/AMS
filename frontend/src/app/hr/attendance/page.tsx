@@ -1,41 +1,17 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import HRLayout from '@/components/hr/Layout';
-
-interface AttendanceRecord {
-  id: number;
-  user_id: number;
-  user_name: string;
-  mode: 'OFFICE' | 'REMOTE';
-  check_in_time: string;
-  check_out_time: string | null;
-  status: 'PRESENT' | 'ABSENT' | 'LATE';
-  working_minutes: number | null;
-}
-
-interface AttendanceResponse {
-  attendance: AttendanceRecord[];
-  total: number;
-}
+import { useHRAttendance } from '@/hooks/hr/useHRAttendance';
+import type { AttendanceRecord } from '@/types/hr';
 
 export default function HRAttendancePage() {
   const [period, setPeriod] = useState<'today' | 'weekly' | 'monthly'>('today');
 
-  const { data, isLoading, error } = useQuery<AttendanceResponse>({
-    queryKey: ['hrAttendance', period],
-    queryFn: async () => {
-      const response = await fetch(`/api/hr/attendance?period=${period}`, {
-        credentials: 'include',
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Failed to fetch attendance');
-      return result.data;
-    },
-  });
+  const { data, isLoading, error } = useHRAttendance(period);
+  const attendance = (data?.attendance || []) as AttendanceRecord[];
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case 'PRESENT':
         return 'bg-green-100 text-green-800';
@@ -48,7 +24,7 @@ export default function HRAttendancePage() {
     }
   };
 
-  const getModeColor = (mode: string) => {
+  const getModeColor = (mode: string | undefined) => {
     switch (mode) {
       case 'OFFICE':
         return 'bg-blue-100 text-blue-800';
@@ -59,7 +35,7 @@ export default function HRAttendancePage() {
     }
   };
 
-  const formatTime = (time: string | null) => {
+  const formatTime = (time: string | null | undefined) => {
     if (!time) return '—';
     return new Date(time).toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -67,7 +43,7 @@ export default function HRAttendancePage() {
     });
   };
 
-  const formatDuration = (minutes: number | null) => {
+  const formatDuration = (minutes: number | null | undefined) => {
     if (!minutes) return '—';
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -121,7 +97,7 @@ export default function HRAttendancePage() {
         {/* Attendance table */}
         {!isLoading && data && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
-            {data.attendance.length > 0 ? (
+            {attendance.length > 0 ? (
               <>
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
@@ -147,7 +123,7 @@ export default function HRAttendancePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {data.attendance.map((record) => (
+                    {attendance.map((record) => (
                       <tr key={record.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                           {record.user_name}

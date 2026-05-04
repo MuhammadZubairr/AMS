@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import BrandLogo from '../BrandLogo';
+import { ROUTES } from '@/constants/routes';
 
 const items = [
-  { label: 'Dashboard', href: '/dashboard' },
-  { label: 'My Attendance', href: '/attendance' },
-  { label: 'Leave Requests', href: '/leaves' },
-  { label: 'Profile', href: '/profile' },
+  { label: 'Dashboard', href: ROUTES.EMPLOYEE.DASHBOARD },
+  { label: 'My Attendance', href: ROUTES.EMPLOYEE.MY_ATTENDANCE },
+  { label: 'Leave Requests', href: ROUTES.EMPLOYEE.LEAVE_REQUESTS },
+  { label: 'Profile', href: ROUTES.EMPLOYEE.PROFILE },
 ];
 
 export default function EmployeeSidebar({ isOpen, onClose, onLogout }) {
@@ -15,23 +17,23 @@ export default function EmployeeSidebar({ isOpen, onClose, onLogout }) {
 
   return (
     <>
-      {isOpen && (
-        <button
-          type="button"
-          aria-label="Close menu overlay"
-          className="fixed inset-0 z-30 bg-slate-900/35 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      <button
+        type="button"
+        aria-label="Close menu overlay"
+        className={`fixed inset-0 z-30 bg-slate-900/35 transition-opacity duration-300 md:hidden ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={onClose}
+      />
 
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen w-64 transform bg-white shadow-xl transition-transform duration-200 md:translate-x-0 md:shadow-none md:border-r md:border-blue-100 ${
+        className={`fixed left-0 top-0 z-40 h-screen w-64 transform bg-white shadow-xl transition-[transform,box-shadow] duration-300 ease-in-out md:translate-x-0 md:shadow-none md:border-r md:border-blue-100 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex h-full flex-col">
           <div className="border-b border-blue-100 px-5 py-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">DevFlx</p>
+              <BrandLogo subtitle="Employee" />
             <h2 className="mt-1 text-lg font-bold text-slate-900">Employee</h2>
           </div>
 

@@ -26,7 +26,7 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className="mb-4">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={name} className="mb-1 block text-sm font-medium text-slate-700">
         {label}
       </label>
       <Field
@@ -35,9 +35,9 @@ export function FormField({
         type={type}
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          error && touched ? 'border-red-500' : 'border-gray-300'
-        } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+        className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 ${
+          error && touched ? 'border-red-500' : 'border-slate-300'
+        } ${disabled ? 'cursor-not-allowed bg-slate-100' : ''}`}
       />
       {error && touched && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
@@ -66,7 +66,7 @@ export function FormSelect({
 }: FormSelectProps) {
   return (
     <div className="mb-4">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={name} className="mb-1 block text-sm font-medium text-slate-700">
         {label}
       </label>
       <Field
@@ -74,9 +74,9 @@ export function FormSelect({
         id={name}
         name={name}
         disabled={disabled}
-        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-          error && touched ? 'border-red-500' : 'border-gray-300'
-        } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+        className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 ${
+          error && touched ? 'border-red-500' : 'border-slate-300'
+        } ${disabled ? 'cursor-not-allowed bg-slate-100' : ''}`}
       >
         <option value="">Select an option</option>
         {options.map((opt) => (
@@ -107,7 +107,7 @@ export function FormSubmit({
   variant = 'primary',
 }: FormSubmitProps) {
   const variantClasses = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+    primary: 'btn-create-action',
     danger: 'bg-red-600 hover:bg-red-700 text-white',
   };
 
@@ -115,7 +115,7 @@ export function FormSubmit({
     <button
       type="submit"
       disabled={isLoading || disabled}
-      className={`w-full px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 cursor-disabled ${variantClasses[variant]}`}
+      className={`w-full rounded-full px-4 py-2.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]}`}
     >
       {isLoading ? 'Loading...' : label}
     </button>

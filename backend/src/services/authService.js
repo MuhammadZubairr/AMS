@@ -2,36 +2,17 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 const { validatePassword } = require('../utils/passwordValidator');
+const logger = require('../utils/logger');
+const ROLES = require('../constants/roles');
 
 const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || '12', 10);
-const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
-
-/**
- * Sign up a new user (public endpoint)
- * @param {object} param0 - Signup data
- * @returns {Promise<object>} User object
- */
-async function signup({ email, password, name }) {
-  // Validate password
-  const passwordValidation = validatePassword(password);
-  if (!passwordValidation.isValid) {
-    const error = new Error(passwordValidation.errors.join(', '));
-    error.status = 400;
-    throw error;
-  }
-
-  const existing = await userModel.findByEmail(email);
-  if (existing) {
-    const error = new Error('Email already registered');
-    error.status = 409;
-    throw error;
-  }
-
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-  const user = await userModel.createUser({ email, passwordHash, name });
-  return { id: user.id, email: user.email, name: user.name, role: user.role };
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET && process.env.NODE_ENV !== 'development') {
+  logger.error('FATAL: Missing JWT_SECRET environment variable. Aborting startup.');
+  process.exit(1);
 }
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
+const { getClient } = require('../config/redis');
 
 /**
  * Login user
@@ -55,6 +36,20 @@ async function login({ email, password }) {
 
   const payload = { id: user.id, email: user.email, role: user.role };
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+  // If Redis is available, cache the session token -> payload for quick validation and optional logout
+  try {
+    const redis = getClient();
+    if (redis) {
+      // Token TTL should match the JWT expiry as seconds when it's a simple duration like '1h'
+      let ttl = 3600; // default 1 hour
+      const match = String(JWT_EXPIRES_IN).match(/(\d+)h/);
+      if (match) ttl = parseInt(match[1], 10) * 3600;
+      await redis.set(`session:${token}`, JSON.stringify(payload), 'EX', ttl);
+    }
+  } catch (err) {
+    logger.warn('Redis session set failed', err.message);
+  }
   return { token, user: payload };
 }
 
@@ -81,8 +76,8 @@ async function createUserByAdmin({ email, password, name, role }, createdBy) {
     throw error;
   }
 
-  // Validate role
-  const allowedRoles = ['manager', 'hr', 'employee'];
+  // Validate role using centralized constants
+  const allowedRoles = [ROLES.MANAGER, ROLES.HR, ROLES.EMPLOYEE];
   if (!allowedRoles.includes(role)) {
     const error = new Error(`Invalid role. Allowed roles: ${allowedRoles.join(', ')}`);
     error.status = 400;
@@ -158,4 +153,4 @@ async function changePassword(userId, currentPassword, newPassword) {
   };
 }
 
-module.exports = { signup, login, createUserByAdmin, changePassword };
+module.exports = { login, createUserByAdmin, changePassword };

@@ -8,9 +8,9 @@ export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
     LOGIN: '/api/auth/login',
-    SIGNUP: '/api/auth/signup',
     LOGOUT: '/api/auth/logout',
     ME: '/api/auth/me',
+    CHANGE_PASSWORD: '/api/auth/change-password',
   },
 
   // Health
@@ -38,9 +38,24 @@ export const API_ENDPOINTS = {
 
   // Attendance (for future)
   ATTENDANCE: {
+    SUMMARY: '/api/attendance/summary',
     TODAY: '/api/attendance/today',
     HISTORY: '/api/attendance/history',
     MARK: '/api/attendance/mark',
+  },
+
+  // HR (Human Resources)
+  HR: {
+    DASHBOARD: '/api/hr/dashboard',
+    EMPLOYEES: '/api/hr/employees',
+    EMPLOYEE: (id: number) => `/api/hr/employees/${id}`,
+    LEAVES_PENDING: '/api/hr/leaves/pending',
+    LEAVE_APPROVE: (id: number) => `/api/hr/leaves/${id}/approve`,
+    LEAVE_REJECT: (id: number) => `/api/hr/leaves/${id}/reject`,
+    ATTENDANCE_RECENT: '/api/hr/attendance/recent',
+    REPORTS_DAILY: '/api/hr/reports/daily',
+    REPORTS_MONTHLY: '/api/hr/reports/monthly',
+    REPORTS_EMPLOYEE: (id: number) => `/api/hr/reports/employee/${id}`,
   },
 
   // Reports (for future)
@@ -51,4 +66,7 @@ export const API_ENDPOINTS = {
   },
 } as const;
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || '';
+
+// Use same-origin by default so Next.js rewrites can proxy requests and avoid CORS/mixed-content issues.
+export const API_BASE_URL = configuredApiUrl.replace(/\/$/, '');

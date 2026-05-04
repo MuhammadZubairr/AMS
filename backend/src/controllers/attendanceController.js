@@ -329,12 +329,36 @@ async function getMyAttendanceHistory(req, res, next) {
     const userId = req.user.id;
     const limit = parseInt(req.query.limit, 10) || 30;
     const offset = parseInt(req.query.offset, 10) || 0;
+    const from = req.query.from || null; // YYYY-MM-DD
+    const to = req.query.to || null; // YYYY-MM-DD
+    const status = req.query.status || null; // present|absent|late
+    const workType = req.query.workType || null; // OFFICE|REMOTE
+    const month = req.query.month || null; // YYYY-MM
 
-    const history = await attendanceModel.getAttendanceHistoryByUser(userId, { limit, offset });
+    const history = await attendanceModel.getAttendanceHistoryByUser(userId, {
+      limit,
+      offset,
+      from,
+      to,
+      status,
+      workType,
+    });
+
+    // If month provided, fetch monthly stats
+    let stats = null;
+    if (month) {
+      const [year, monthNum] = month.split('-').map((v) => parseInt(v, 10));
+      if (!Number.isNaN(year) && !Number.isNaN(monthNum)) {
+        stats = await attendanceModel.getAttendanceSummaryByUser(userId, { year, month: monthNum });
+      }
+    }
 
     res.json({
       ok: true,
-      data: history,
+      data: {
+        history,
+        stats,
+      },
     });
   } catch (error) {
     next(error);

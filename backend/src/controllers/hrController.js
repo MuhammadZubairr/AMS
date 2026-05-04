@@ -94,8 +94,9 @@ async function createEmployee(req, res, next) {
     }
 
     // Use auth service to create employee (handles password hashing)
+    const ROLES = require('../constants/roles');
     const employee = await authService.createUserByAdmin(
-      { email, password, name, role: 'employee' },
+      { email, password, name, role: ROLES.EMPLOYEE },
       req.user.id
     );
 

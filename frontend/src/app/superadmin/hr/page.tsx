@@ -5,18 +5,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Formik, Form } from 'formik';
 import { useQueryClient } from '@tanstack/react-query';
 import { SuperAdminLayout } from '@/components/superadmin/Layout';
 import { DataTable, TableColumn } from '@/components/superadmin/DataTable';
 import { Modal } from '@/components/superadmin/Modal';
 import { Badge } from '@/components/superadmin/Badge';
-import { FormField, FormSubmit } from '@/components/superadmin/FormFields';
 import { LoadingState, ErrorState, EmptyState } from '@/components/superadmin/States';
 import { DeleteConfirmation } from '@/components/superadmin/DeleteConfirmation';
 import { useHRUsers, useCreateHR, useDeleteUser } from '@/hooks/useSuperAdmin';
-import { createHRSchema, CreateHRFormData } from '@/schemas/superadmin';
 import { User } from '@/types/superadmin';
+import { formatDate } from '@/utils/formatDate';
+import ActionMenu from '@/components/superadmin/ActionMenu';
+import { CreateUserForm, CreateUserFormValues } from '@/components/superadmin/CreateUserForm';
 
 export default function HRPage() {
   const queryClient = useQueryClient();
@@ -32,9 +32,13 @@ export default function HRPage() {
 
   const hrUsers = data?.users || [];
 
-  const handleCreateHR = async (values: CreateHRFormData) => {
+  const handleCreateHR = async (values: CreateUserFormValues) => {
     try {
-      const response = await createMutation.mutateAsync(values);
+      const response = await createMutation.mutateAsync({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      });
       if (response.ok) {
         setIsModalOpen(false);
       }
@@ -65,7 +69,7 @@ export default function HRPage() {
     {
       key: 'created_at',
       label: 'Created',
-      render: (value) => new Date(String(value)).toLocaleDateString(),
+      render: (value) => formatDate(value as any),
     },
   ];
 
@@ -88,7 +92,7 @@ export default function HRPage() {
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            className="btn-create-action px-6 py-2 transition-colors font-medium"
           >
             ➕ Add HR
           </button>
@@ -108,12 +112,9 @@ export default function HRPage() {
               columns={columns}
               data={hrUsers}
               actions={(user) => (
-                <button
-                  onClick={() => setDeleteConfirm({ open: true, user })}
-                  className="text-red-600 hover:text-red-800 font-medium"
-                >
-                  Delete
-                </button>
+                <ActionMenu
+                  items={[{ label: 'Delete', onClick: () => setDeleteConfirm({ open: true, user }), accent: 'danger' }]}
+                />
               )}
             />
           </div>
@@ -121,40 +122,13 @@ export default function HRPage() {
 
         {/* Create HR Modal */}
         <Modal isOpen={isModalOpen} title="Create HR User" onClose={() => setIsModalOpen(false)}>
-          <Formik
-            initialValues={{ name: '', email: '', password: '' }}
-            validationSchema={createHRSchema}
+          <CreateUserForm
+            submitLabel="Create HR User"
+            lockedRole="hr"
+            initialRole="hr"
             onSubmit={handleCreateHR}
-          >
-            {({ errors, touched, isSubmitting }) => (
-              <Form className="space-y-4">
-                <FormField
-                  name="name"
-                  label="Full Name"
-                  placeholder="Jane Doe"
-                  error={errors.name}
-                  touched={touched.name}
-                />
-                <FormField
-                  name="email"
-                  label="Email"
-                  type="email"
-                  placeholder="jane@example.com"
-                  error={errors.email}
-                  touched={touched.email}
-                />
-                <FormField
-                  name="password"
-                  label="Password"
-                  type="password"
-                  placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special"
-                  error={errors.password}
-                  touched={touched.password}
-                />
-                <FormSubmit label="Create HR User" isLoading={isSubmitting} />
-              </Form>
-            )}
-          </Formik>
+            onCancel={() => setIsModalOpen(false)}
+          />
         </Modal>
 
         {/* Delete Confirmation */}

@@ -1,0 +1,11 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="devflx-favicon-gradient" x1="10" y1="9" x2="38" y2="39" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F80FF" />
+      <stop offset="1" stop-color="#1E5BFF" />
+    </linearGradient>
+  </defs>
+  <path d="M12 13.5L24 9.5L36 13.5V24L24 38.5L12 24V13.5Z" fill="url(#devflx-favicon-gradient)" />
+  <path d="M15.5 15.9L24 13L32.5 15.9V23L24 34.9L15.5 23V15.9Z" stroke="rgba(255,255,255,0.45)" stroke-width="1.2" />
+  <path d="M18 19.5L24 18L30 19.5V23.2L24 30.5L18 23.2V19.5Z" fill="white" opacity="0.95" />
+</svg>

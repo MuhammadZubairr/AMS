@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ManagerLayout from '@/components/ManagerLayout';
+import { formatDate } from '@/utils/formatDate';
 import { managerApi } from '@/services/managerApi';
 
 export default function ManagerReports() {
@@ -11,6 +12,8 @@ export default function ManagerReports() {
   const { data: reportsData, isLoading, error } = useQuery({
     queryKey: ['manager-reports', period],
     queryFn: () => managerApi.getReports({ period }),
+    staleTime: 1000 * 30, // 30s
+    keepPreviousData: true,
   });
 
   const report = reportsData?.data?.report || [];
@@ -182,8 +185,8 @@ export default function ManagerReports() {
               {report.map((day, index) => (
                 <div key={index} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-900">
-                      {new Date(day.day).toLocaleDateString()}
+                      <span className="font-medium text-slate-900">
+                      {formatDate(day.day)}
                     </span>
                     <div className="flex space-x-4 text-xs">
                       <span className="text-green-600">Present: {day.present || 0}</span>
@@ -249,7 +252,7 @@ export default function ManagerReports() {
                     return (
                       <tr key={index} className="hover:bg-slate-50">
                         <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
-                          {new Date(day.day).toLocaleDateString()}
+                          {formatDate(day.day)}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-green-600 font-medium">
                           {day.present || 0}

@@ -7,13 +7,14 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/authMiddleware');
 const { requireRole } = require('../middleware/roleMiddleware');
+const ROLES = require('../constants/roles');
 const superadminController = require('../controllers/superadminController');
 
 const router = express.Router();
 
 // All superadmin routes require authentication and superadmin role
 router.use(requireAuth);
-router.use(requireRole('superadmin'));
+router.use(requireRole(ROLES.SUPERADMIN));
 
 /**
  * GET /api/superadmin/dashboard

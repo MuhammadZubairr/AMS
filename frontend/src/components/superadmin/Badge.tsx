@@ -2,7 +2,7 @@
  * Badge Component for displaying roles and statuses
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 
 interface BadgeProps {
   label: string;
@@ -23,7 +23,11 @@ const sizeClasses = {
   md: 'px-3 py-1.5 text-sm',
 };
 
-export function Badge({ label, variant = 'primary', size = 'md' }: BadgeProps) {
+/**
+ * Badge Component - Memoized
+ * Prevents unnecessary re-renders
+ */
+export const Badge = memo(function Badge({ label, variant = 'primary', size = 'md' }: BadgeProps) {
   return (
     <span
       className={`inline-block font-semibold rounded-full ${variantClasses[variant]} ${sizeClasses[size]}`}
@@ -31,4 +35,4 @@ export function Badge({ label, variant = 'primary', size = 'md' }: BadgeProps) {
       {label}
     </span>
   );
-}
+});

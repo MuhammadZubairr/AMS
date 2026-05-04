@@ -3,12 +3,13 @@
  * StatCard component for dashboard
  */
 
-import React from 'react';
+import React, { memo } from 'react';
+import { SuperAdminIcon } from './Icon';
 
 interface StatCardProps {
   title: string;
   value: number | string;
-  icon?: React.ReactNode;
+  icon?: React.ReactNode | string;
   color?: 'blue' | 'green' | 'red' | 'purple' | 'yellow';
   trend?: {
     value: number;
@@ -33,7 +34,11 @@ const iconColorClasses: Record<string, string> = {
   yellow: 'text-yellow-400',
 };
 
-export function StatCard({
+/**
+ * StatCard Component
+ * Memoized to prevent unnecessary re-renders
+ */
+export const StatCard = memo(function StatCard({
   title,
   value,
   icon,
@@ -44,20 +49,24 @@ export function StatCard({
   return (
     <div
       onClick={onClick}
-      className={`p-6 rounded-lg border-2 cursor-pointer transition-all hover:shadow-lg hover:scale-105 ${colorClasses[color]}`}
+      className={`group rounded-3xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${colorClasses[color]}`}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium opacity-75">{title}</p>
-          <p className="text-3xl font-bold mt-2">{value}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-medium opacity-70">{title}</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight">{value}</p>
           {trend && (
-            <p className={`text-sm mt-2 ${trend.direction === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`mt-2 text-sm ${trend.direction === 'up' ? 'text-green-600' : 'text-red-600'}`}>
               {trend.direction === 'up' ? '↑' : '↓'} {trend.value}%
             </p>
           )}
         </div>
-        {icon && <div className={`text-3xl ${iconColorClasses[color]}`}>{icon}</div>}
+        {icon && (
+          <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 ${iconColorClasses[color]}`}>
+            {typeof icon === 'string' ? <SuperAdminIcon name={icon as any} className="h-6 w-6" /> : icon}
+          </div>
+        )}
       </div>
     </div>
   );
-}
+});

@@ -18,7 +18,8 @@ async function markAbsentEmployees() {
     logger.info('[Cron] Starting daily absent marking job');
 
     // Get all employees
-    const employees = await userModel.getAllUsers({ role: 'employee' });
+    const ROLES = require('../constants/roles');
+    const employees = await userModel.getAllUsers({ role: ROLES.EMPLOYEE });
 
     let absentCount = 0;
 

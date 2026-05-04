@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ManagerLayout from '@/components/ManagerLayout';
+import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function ManagerProfile() {
@@ -176,7 +177,7 @@ export default function ManagerProfile() {
             <div className="flex justify-between">
               <span className="text-slate-600">Account Created</span>
               <span className="text-slate-900">
-                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                {user?.created_at ? formatDate(user.created_at) : 'N/A'}
               </span>
             </div>
             <div className="flex justify-between">

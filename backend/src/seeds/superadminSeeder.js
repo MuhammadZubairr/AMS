@@ -46,11 +46,12 @@ async function seedSuperAdmins() {
       const passwordHash = await bcrypt.hash(account.password, SALT_ROUNDS);
 
       // Create super admin
+      const ROLES = require('../constants/roles');
       const result = await db.query(
         `INSERT INTO users (name, email, password_hash, role, created_at)
          VALUES ($1, $2, $3, $4, now())
          RETURNING id, email, name, role, created_at`,
-        [account.name, account.email, passwordHash, 'superadmin']
+        [account.name, account.email, passwordHash, ROLES.SUPERADMIN]
       );
 
       console.log(`[Seeder] ✓ Super admin created: ${account.email}`);

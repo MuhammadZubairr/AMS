@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const ROLES = require('../constants/roles');
 
 /**
  * Create a new user
@@ -10,7 +11,7 @@ const db = require('../config/database');
  * @param {number} userData.createdBy - ID of user who created this user (optional)
  * @returns {Promise<object>} Created user object
  */
-async function createUser({ email, passwordHash, name, role = 'employee', createdBy = null }) {
+async function createUser({ email, passwordHash, name, role = ROLES.EMPLOYEE, createdBy = null }) {
   const text = `
     INSERT INTO users (email, password_hash, name, role, created_by, created_at)
     VALUES ($1, $2, $3, $4, $5, now())

@@ -62,7 +62,7 @@ export function EmptyState({ title, message, actionLabel, onAction }: EmptyState
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="btn-create-action mt-4 px-6 py-2"
         >
           {actionLabel}
         </button>

@@ -8,6 +8,8 @@ const attendanceModel = require('../models/attendanceModel');
 const leaveModel = require('../models/leaveModel');
 const reportModel = require('../models/reportModel');
 const notificationService = require('../services/notificationService');
+const ROLES = require('../constants/roles');
+const { cacheGet, cacheSet } = require('../config/redis');
 
 /**
  * Get manager dashboard statistics
@@ -17,7 +19,7 @@ async function getDashboard(req, res, next) {
   try {
     // For now, managers can see all employees. In production, you'd filter by manager_id
     const [totalTeamMembers, presentToday, absentToday, lateToday, pendingLeaves] = await Promise.all([
-      userModel.countByRole('employee'),
+      userModel.countByRole(ROLES.EMPLOYEE),
       attendanceModel.getTodayAttendanceCount(),
       attendanceModel.getAbsentCount(),
       attendanceModel.getLateCount(),
@@ -51,7 +53,7 @@ async function getTeam(req, res, next) {
     const result = await userModel.getAllUsers({
       limit: parseInt(limit, 10),
       offset: parseInt(offset, 10),
-      role: 'employee',
+      role: ROLES.EMPLOYEE,
       search: search || null,
     });
 
@@ -190,6 +192,12 @@ async function getReports(req, res, next) {
   try {
     const { period = 'weekly' } = req.query;
 
+    const cacheKey = `manager:reports:${period}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      return res.json({ ok: true, data: { period, report: cached } });
+    }
+
     let data;
     if (period === 'weekly') {
       data = await reportModel.getWeeklyReport();
@@ -200,6 +208,10 @@ async function getReports(req, res, next) {
       error.status = 400;
       throw error;
     }
+
+    try {
+      await cacheSet(cacheKey, data, 15); // 15s
+    } catch (err) {}
 
     res.json({
       ok: true,

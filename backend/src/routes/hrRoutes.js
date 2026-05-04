@@ -7,13 +7,14 @@
 const express = require('express');
 const { requireAuth } = require('../middleware/authMiddleware');
 const { requireRole } = require('../middleware/roleMiddleware');
+const ROLES = require('../constants/roles');
 const hrController = require('../controllers/hrController');
 
 const router = express.Router();
 
 // All HR routes require authentication and HR role
 router.use(requireAuth);
-router.use(requireRole('hr'));
+router.use(requireRole(ROLES.HR));
 
 /**
  * Dashboard

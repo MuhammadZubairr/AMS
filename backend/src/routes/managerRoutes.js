@@ -8,10 +8,11 @@ const router = express.Router();
 const managerController = require('../controllers/managerController');
 const { requireAuth } = require('../middleware/authMiddleware');
 const { requireRole } = require('../middleware/roleMiddleware');
+const ROLES = require('../constants/roles');
 
 // All manager routes require authentication and manager role
 router.use(requireAuth);
-router.use(requireRole('manager'));
+router.use(requireRole(ROLES.MANAGER));
 
 // Dashboard
 router.get('/dashboard', managerController.getDashboard);

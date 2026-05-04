@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ManagerLayout from '@/components/ManagerLayout';
+import { formatDate } from '@/utils/formatDate';
 import { managerApi } from '@/services/managerApi';
 
 export default function ManagerLeaves() {
@@ -194,7 +195,7 @@ export default function ManagerLeaves() {
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                      {new Date(leave.start_date).toLocaleDateString()} - {new Date(leave.end_date).toLocaleDateString()}
+                      {formatDate(leave.start_date)} - {formatDate(leave.end_date)}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">
                       {leave.reason || 'No reason provided'}
@@ -261,8 +262,8 @@ export default function ManagerLeaves() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-slate-500">Dates:</span>
-                    <span className="text-sm text-slate-900">
-                      {new Date(leave.start_date).toLocaleDateString()} - {new Date(leave.end_date).toLocaleDateString()}
+                      <span className="text-sm text-slate-900">
+                      {formatDate(leave.start_date)} - {formatDate(leave.end_date)}
                     </span>
                   </div>
                   <div>
@@ -319,7 +320,7 @@ export default function ManagerLeaves() {
                         <div>
                           <span className="font-medium text-slate-500">Dates:</span>
                           <p className="text-slate-900">
-                            {new Date(selectedLeave.start_date).toLocaleDateString()} - {new Date(selectedLeave.end_date).toLocaleDateString()}
+                            {formatDate(selectedLeave.start_date)} - {formatDate(selectedLeave.end_date)}
                           </p>
                         </div>
                         <div>

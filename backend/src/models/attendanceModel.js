@@ -230,12 +230,47 @@ async function updateCheckOut(attendanceId, data) {
  * @param {object} options - Pagination options
  * @returns {Promise<object>} Attendance history and total count
  */
-async function getAttendanceHistoryByUser(userId, { limit = 30, offset = 0 } = {}) {
+async function getAttendanceHistoryByUser(
+  userId,
+  { limit = 30, offset = 0, from = null, to = null, status = null, workType = null } = {}
+) {
+  // Build dynamic where clause and params safely
+  const params = [userId];
+  let idx = 2;
+  let where = 'WHERE user_id = $1';
+
+  if (from) {
+    where += ` AND DATE(created_at) >= $${idx}`;
+    params.push(from);
+    idx += 1;
+  }
+
+  if (to) {
+    where += ` AND DATE(created_at) <= $${idx}`;
+    params.push(to);
+    idx += 1;
+  }
+
+  if (status) {
+    where += ` AND status = $${idx}`;
+    params.push(status);
+    idx += 1;
+  }
+
+  if (workType) {
+    where += ` AND mode = $${idx}`;
+    params.push(workType);
+    idx += 1;
+  }
+
   const countQuery = `
     SELECT COUNT(*)::INTEGER AS total
     FROM attendance
-    WHERE user_id = $1
+    ${where}
   `;
+
+  // add limit/offset params at the end
+  params.push(limit, offset);
 
   const dataQuery = `
     SELECT
@@ -244,21 +279,33 @@ async function getAttendanceHistoryByUser(userId, { limit = 30, offset = 0 } = {
       check_in,
       check_out,
       mode,
-      status
+      status,
+      COALESCE(working_seconds, 0) as working_seconds
     FROM attendance
-    WHERE user_id = $1
+    ${where}
     ORDER BY created_at DESC
-    LIMIT $2 OFFSET $3
+    LIMIT $${idx} OFFSET $${idx + 1}
   `;
 
   const [countResult, dataResult] = await Promise.all([
-    db.query(countQuery, [userId]),
-    db.query(dataQuery, [userId, limit, offset]),
+    db.query(countQuery, params.slice(0, params.length - 2)),
+    db.query(dataQuery, params),
   ]);
+
+  // Map working_seconds to human readable format
+  const records = dataResult.rows.map((r) => ({
+    id: r.id,
+    date: r.date,
+    check_in: r.check_in,
+    check_out: r.check_out,
+    work_type: r.mode,
+    status: r.status,
+    working_hours: formatWorkingHours(r.working_seconds),
+  }));
 
   return {
     total: countResult.rows[0].total,
-    records: dataResult.rows,
+    records,
   };
 }
 
