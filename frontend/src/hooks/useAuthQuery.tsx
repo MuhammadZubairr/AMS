@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as authApi from '@/api/auth';
+import { AUTH_STORAGE_KEYS } from '@/constants/auth';
 import type { LoginPayload, LoginResponse } from '@/types/auth';
 
 export function useMe() {
@@ -12,7 +13,7 @@ export function useLogin() {
     mutationFn: (payload) => authApi.login(payload),
     onSuccess(data) {
       try {
-        if (typeof window !== 'undefined') sessionStorage.setItem('authToken', (data as any).token);
+        if (typeof window !== 'undefined') sessionStorage.setItem(AUTH_STORAGE_KEYS.authToken, (data as any).token);
       } catch (e) {}
       // Immediately cache the user data to avoid blank screen on redirect
       qc.setQueryData(['auth', 'me'], data);
@@ -27,7 +28,7 @@ export function useLogout() {
     mutationFn: () => authApi.logout(),
     onSuccess() {
       try {
-        if (typeof window !== 'undefined') sessionStorage.removeItem('authToken');
+        if (typeof window !== 'undefined') sessionStorage.removeItem(AUTH_STORAGE_KEYS.authToken);
       } catch (e) {}
       qc.clear();
     },

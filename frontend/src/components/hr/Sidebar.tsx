@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
 import BrandLogo from '../BrandLogo';
 import { SuperAdminIcon } from '@/components/superadmin/Icon';
+import { AUTH_STORAGE_KEYS } from '@/constants/auth';
 
 export default function HRSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function HRSidebar({ isOpen, onClose }: { isOpen: boolean; onClos
     setIsLogoutLoading(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      if (typeof window !== 'undefined') sessionStorage.removeItem('authToken');
+      if (typeof window !== 'undefined') sessionStorage.removeItem(AUTH_STORAGE_KEYS.authToken);
       router.push('/login');
     } catch (error) {
       console.error('Logout failed:', error);

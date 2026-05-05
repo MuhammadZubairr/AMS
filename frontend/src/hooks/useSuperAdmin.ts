@@ -4,6 +4,7 @@
  */
 
 import { useQuery, useMutation, QueryClient } from '@tanstack/react-query';
+import { AUTH_STORAGE_KEYS } from '@/constants/auth';
 import { SUPERADMIN_ATTENDANCE } from '@/constants/endpoints';
 import * as superadminApi from '@/services/superadminApi';
 import {
@@ -22,7 +23,7 @@ async function fetchAttendance(period: string): Promise<AttendanceRecord[]> {
   const headers: Record<string, string> = {};
   try {
     if (typeof window !== 'undefined') {
-      const token = sessionStorage.getItem('authToken');
+      const token = sessionStorage.getItem(AUTH_STORAGE_KEYS.authToken);
       if (token) headers.Authorization = `Bearer ${token}`;
     }
   } catch (e) {

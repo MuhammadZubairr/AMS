@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { API_BASE_URL } from '@/constants/endpoints';
+import { AUTH_STORAGE_KEYS } from '@/constants/auth';
 
 const client: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -13,7 +14,7 @@ const client: AxiosInstance = axios.create({
 // Attach auth token from sessionStorage for per-tab auth
 client.interceptors.request.use((config) => {
   try {
-    const token = typeof window !== 'undefined' ? sessionStorage.getItem('authToken') : null;
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem(AUTH_STORAGE_KEYS.authToken) : null;
     if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }

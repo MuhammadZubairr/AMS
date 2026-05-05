@@ -5,6 +5,7 @@ export type LoginPayload = {
 
 export type LoginResponse = {
   token: string;
+  refreshToken?: string;
   user: {
     id: number;
     name: string;

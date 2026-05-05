@@ -1,4 +1,5 @@
 import { API_ENDPOINTS, API_BASE_URL } from '@/constants/endpoints';
+import { AUTH_STORAGE_KEYS } from '@/constants/auth';
 
 /**
  * Request types
@@ -16,6 +17,7 @@ export interface LoginPayload {
 
 export interface LoginResponse {
   token: string;
+  refreshToken?: string;
   user: {
     id: number;
     email: string;
@@ -37,7 +39,7 @@ export interface LeavePayload {
  */
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return sessionStorage.getItem('authToken');
+  return sessionStorage.getItem(AUTH_STORAGE_KEYS.authToken);
 }
 
 /**
@@ -62,6 +64,35 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      if (
+        response.status === 401 &&
+        typeof window !== 'undefined' &&
+        path !== API_ENDPOINTS.AUTH.LOGIN &&
+        path !== API_ENDPOINTS.AUTH.REFRESH &&
+        path !== API_ENDPOINTS.AUTH.LOGOUT
+      ) {
+        const refreshed = await refreshAuthSession();
+        if (refreshed.ok) {
+          const retryToken = getAuthToken();
+          const retryResponse = await fetch(`${API_BASE_URL}${path}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(retryToken ? { Authorization: `Bearer ${retryToken}` } : {}),
+              ...(options.headers || {}),
+            },
+            credentials: 'include',
+            ...options,
+          });
+
+          const retryData = await retryResponse.json().catch(() => ({}));
+          if (retryResponse.ok) {
+            return { ok: true, data: retryData };
+          }
+
+          return { ok: false, error: retryData.error || 'Request failed' };
+        }
+      }
+
       return { ok: false, error: data.error || 'Request failed' };
     }
 
@@ -79,6 +110,36 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
 
 export { request };
 
+async function refreshAuthSession(): Promise<ApiResponse<LoginResponse>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.REFRESH}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(AUTH_STORAGE_KEYS.authToken);
+      }
+      return { ok: false, error: data.error || 'Session expired' };
+    }
+
+    if (data?.token && typeof window !== 'undefined') {
+      sessionStorage.setItem(AUTH_STORAGE_KEYS.authToken, data.token);
+    }
+
+    return { ok: true, data };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Network request failed';
+    return { ok: false, error: message };
+  }
+}
+
 /**
  * Authentication API service
  */
@@ -95,11 +156,13 @@ export const authApi = {
     });
 
     if (result.ok && result.data?.token && typeof window !== 'undefined') {
-      sessionStorage.setItem('authToken', result.data.token);
+      sessionStorage.setItem(AUTH_STORAGE_KEYS.authToken, result.data.token);
     }
 
     return result;
   },
+
+  refresh: (): Promise<ApiResponse<LoginResponse>> => refreshAuthSession(),
 
   /**
    * Logout user
@@ -108,6 +171,10 @@ export const authApi = {
   logout: (): Promise<ApiResponse> =>
     request(API_ENDPOINTS.AUTH.LOGOUT, {
       method: 'POST',
+    }).finally(() => {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(AUTH_STORAGE_KEYS.authToken);
+      }
     }),
 };
 

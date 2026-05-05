@@ -63,6 +63,8 @@ OR
 - Email: `ghualam.abbas@gmail.com`
 - Password: `Ghulam@123`
 
+The login flow is implemented in `src/app/(auth)/login/page.tsx` with a reusable Formik/Yup form component in `src/components/auth/LoginForm.tsx`. Auth requests go through `src/api/auth.ts`, shared endpoint constants in `src/constants/endpoints.ts`, and the shared Axios client in `src/api/client.ts`.
+
 ## 📁 File Structure Explained
 
 ### Pages (User-facing routes)

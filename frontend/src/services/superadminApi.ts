@@ -4,6 +4,7 @@
  */
 
 import { API_ENDPOINTS, API_BASE_URL } from '@/constants/endpoints';
+import { AUTH_STORAGE_KEYS } from '@/constants/auth';
 import {
   ApiResponse,
   DashboardData,
@@ -26,7 +27,7 @@ async function apiCall<T>(
     let authHeader: Record<string, string> = {};
     try {
       if (typeof window !== 'undefined') {
-        const token = sessionStorage.getItem('authToken');
+        const token = sessionStorage.getItem(AUTH_STORAGE_KEYS.authToken);
         if (token) authHeader = { Authorization: `Bearer ${token}` };
       }
     } catch (e) {
