@@ -48,10 +48,6 @@ export function LoginForm() {
       </div>
 
       <div className="mt-8 rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
-        <div className="mb-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          Secure login with encrypted authentication.
-        </div>
-
         <Formik
           initialValues={initialValues}
           validationSchema={loginValidationSchema}
