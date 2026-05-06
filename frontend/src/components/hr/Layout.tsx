@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function HRLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -38,10 +39,17 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <HRSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <HRSidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        collapsed={isSidebarCollapsed}
+        onCollapseToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col md:ml-64">
+      <div className={`flex-1 flex flex-col transition-[margin] duration-300 ease-in-out ${
+        isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'
+      }`}>
         {/* Top navbar (64px height) */}
         <nav className="bg-white border-b border-gray-200 sticky top-0 z-20 h-16">
           <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">

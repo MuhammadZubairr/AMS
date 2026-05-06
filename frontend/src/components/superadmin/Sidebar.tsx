@@ -48,14 +48,16 @@ export function Sidebar({ collapsed, mobileOpen, onClose }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="flex-1 min-h-0 space-y-1 p-3 pr-2 overflow-y-auto">
+      <nav className="flex-1 min-h-0 space-y-1 p-3 pr-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scroll-smooth">
         {SIDEBAR_MENU.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.id}
               href={item.href}
-              onClick={onClose}
+              onClick={() => {
+                if (window.innerWidth < 768) onClose();
+              }}
               className={`relative group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:shadow-sm ${
                 isActive
                   ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-600/20'

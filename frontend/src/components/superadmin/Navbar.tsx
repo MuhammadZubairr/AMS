@@ -47,7 +47,7 @@ export function Navbar({
 
   return (
     <header
-      className={`fixed right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur-sm shadow-sm transition-[left,box-shadow] duration-300 md:px-6 ${
+      className={`fixed right-0 top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur-sm shadow-sm transition-[left,box-shadow,width] duration-300 md:px-6 left-0 ${
         sidebarCollapsed ? 'md:left-20' : 'md:left-72'
       }`}
     >
