@@ -193,20 +193,20 @@ export default function DashboardPage() {
     <SuperAdminLayout title="Dashboard">
       <div className="space-y-6">
         {/* Stat Cards - High priority, renders first */}
-        <Suspense fallback={<StatCardsSkeleton />}>
-          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {dashboardMetrics.map((metric) => (
-              <StatCard
-                key={metric.title}
-                title={metric.title}
-                value={metric.value}
-                icon={metric.icon}
-                color={metric.tone}
-                trend={{ value: Number(metric.change.replace(/[^0-9]/g, '') || 0), direction: metric.change.includes('-') ? 'down' : 'up' }}
-              />
-            ))}
-          </section>
-        </Suspense>
+          <Suspense fallback={<StatCardsSkeleton />}>
+            <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {dashboardMetrics.map((metric) => (
+                <StatCard
+                  key={metric.title}
+                  title={metric.title}
+                  value={metric.value}
+                  icon={metric.icon}
+                  color={metric.tone}
+                  trend={{ value: Number(metric.change.replace(/[^0-9]/g, '') || 0), direction: metric.change.includes('-') ? 'down' : 'up' }}
+                />
+              ))}
+            </section>
+          </Suspense>
 
         {/* Attendance overview + Quick actions - Medium priority */}
         <div className="grid gap-6 xl:grid-cols-[1.5fr_0.9fr]">

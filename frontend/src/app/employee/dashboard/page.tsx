@@ -94,9 +94,9 @@ export default function EmployeeDashboard() {
   return (
     <EmployeeLayout>
       {/* Welcome Card */}
-      <div className="mb-8">
-        <WelcomeCard employeeName={employeeName} />
-      </div>
+        <div className="mb-8">
+          <WelcomeCard employeeName={employeeName} />
+        </div>
 
       {/* Attendance Action & Today's Attendance Cards */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">

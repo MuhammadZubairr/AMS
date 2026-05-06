@@ -1,3 +1,4 @@
+import ProtectedRoute from '@/components/ProtectedRoute';
 import type { LayoutProps } from '@/types/components';
 
 /**
@@ -5,5 +6,5 @@ import type { LayoutProps } from '@/types/components';
  * Provides layout wrapper for all employee pages
  */
 export default function EmployeeLayout({ children }: LayoutProps) {
-  return <>{children}</>;
+  return <ProtectedRoute>{children}</ProtectedRoute>;
 }

@@ -1,15 +1,27 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import HRSidebar from './Sidebar';
 import { SuperAdminIcon } from '@/components/superadmin/Icon';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function HRLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   // Derive page title from pathname
   const pageTitle = (() => {
@@ -74,9 +86,12 @@ export default function HRLayout({ children }: { children: React.ReactNode }) {
                   <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-md shadow-lg py-1 z-30">
                     <a href="/hr/profile" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">My Profile</a>
                     <a href="/hr/change-password" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Change Password</a>
-                    <form method="post" action="/api/auth/logout">
-                      <button type="submit" className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Logout</button>
-                    </form>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      Logout
+                    </button>
                   </div>
                 )}
               </div>

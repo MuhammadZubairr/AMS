@@ -60,9 +60,9 @@ export default function HRDashboardPage() {
     <HRLayout>
       <div className="space-y-6">
         <header>
-          <h2 className="text-3xl font-bold text-gray-900">HR Dashboard</h2>
-          <p className="text-gray-600 mt-1">Employee statistics and attendance overview</p>
-        </header>
+            <h2 className="text-3xl font-bold text-gray-900">HR Dashboard</h2>
+            <p className="text-gray-600 mt-1">Employee statistics and attendance overview</p>
+          </header>
 
         {/* Section 1 - Statistics Cards */}
         <section>
